@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HC3 Event Logger - Installation Guide</title>
+</head>
+<body>
+    <button onclick="copyContent()" style="position: fixed; top: 10px; right: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 4px;">
+        Copy Forum Post
+    </button>
+    
+    <div id="content">
+        <h1>HC3 Event Logger - Installation Guide</h1>
+        
+        <p>
+            HC3 Event Logger is a desktop application for monitoring Fibaro Home Center 3 (HC3) events in real-time.
+            It provides a clean interface to view device events, scene triggers, and system activities as they happen.
+        </p>
+
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li>Real-time event monitoring with live updates</li>
+            <li>HC3 system information viewer</li>
+            <li>No CORS issues - native desktop app</li>
+            <li>Fast and lightweight</li>
+            <li>Secure local connection to your HC3</li>
+        </ul>
+
+        <h2>Download</h2>
+        
+        <p>Download the latest version: <a href="https://github.com/jangabrielsson/EventLogger/releases/latest">https://github.com/jangabrielsson/EventLogger/releases/latest</a></p>
+
+        <p><strong>Available files:</strong></p>
+        <ul>
+            <li><strong>macOS (Apple Silicon M1/M2/M3):</strong> HC3-Event-Logger_aarch64.app.tar.gz</li>
+            <li><strong>macOS (Intel):</strong> HC3-Event-Logger_x64.app.tar.gz</li>
+            <li><strong>Windows:</strong> HC3-Event-Logger_x64-setup.exe</li>
+        </ul>
+
+        <h2>IMPORTANT: Configure HC3 Credentials First</h2>
+
+        <p><strong>You must configure your HC3 credentials before using the app.</strong></p>
+
+        <h3>Option 1: Using a .env File (Recommended)</h3>
+
+        <p>Create a file named <strong>.env</strong> in the same directory as the application with the following content:</p>
+
+        <pre>HC3_HOST=192.168.1.57
+HC3_USER=admin
+HC3_PASSWORD=yourpassword</pre>
+
+        <p>Replace with your actual values:</p>
+        <ul>
+            <li>HC3_HOST - Your HC3 IP address (no http://)</li>
+            <li>HC3_USER - Your HC3 username (usually "admin")</li>
+            <li>HC3_PASSWORD - Your HC3 password</li>
+        </ul>
+
+        <h3>Option 2: Using Environment Variables</h3>
+
+        <p><strong>macOS/Linux:</strong></p>
+        <pre>export HC3_HOST=192.168.1.57
+export HC3_USER=admin
+export HC3_PASSWORD=yourpassword
+open /Applications/HC3\ Event\ Logger.app</pre>
+
+        <p><strong>Windows (PowerShell):</strong></p>
+        <pre>$env:HC3_HOST="192.168.1.57"
+$env:HC3_USER="admin"
+$env:HC3_PASSWORD="yourpassword"
+Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
+
+        <h2>Installation Instructions</h2>
+
+        <h3>macOS</h3>
+
+        <ol>
+            <li>Download the appropriate file for your Mac (Apple Silicon or Intel)</li>
+            <li>Extract the downloaded .tar.gz file (double-click in Finder)</li>
+            <li>Drag HC3 Event Logger.app to your Applications folder</li>
+            <li>Create a .env file in the same directory with your HC3 credentials (see above)</li>
+            <li>Right-click the app and select "Open" (first time only for macOS security)</li>
+        </ol>
+
+        <p><strong>macOS Security Note:</strong> If you see "cannot be opened because it is from an unidentified developer":</p>
+        <ul>
+            <li>Right-click the app and select "Open", or</li>
+            <li>Go to System Preferences → Security &amp; Privacy → Click "Open Anyway"</li>
+        </ul>
+
+        <h3>Windows</h3>
+
+        <ol>
+            <li>Download HC3-Event-Logger_x64-setup.exe</li>
+            <li>Run the installer and follow the wizard</li>
+            <li>Create a .env file in the installation directory (usually C:\Program Files\HC3 Event Logger\) with your credentials</li>
+            <li>Launch from Start Menu or desktop shortcut</li>
+        </ol>
+
+        <p><strong>Windows Security Note:</strong> If you see "Windows protected your PC":</p>
+        <ul>
+            <li>Click "More info"</li>
+            <li>Click "Run anyway"</li>
+        </ul>
+
+        <h2>Using the App</h2>
+
+        <h3>Main Window - Event Logger</h3>
+        <p>Displays real-time events from your HC3:</p>
+        <ul>
+            <li>Timestamp - When the event occurred</li>
+            <li>Event Type - Type of event (device change, scene trigger, etc.)</li>
+            <li>Source ID - Device or scene that triggered the event</li>
+            <li>Details - Event-specific information</li>
+        </ul>
+
+        <h3>HC3 System Info Window</h3>
+        <p>Access from <strong>Window → HC3 System Info</strong> menu to view:</p>
+        <ul>
+            <li>System information (version, serial number, platform)</li>
+            <li>Z-Wave and Zigbee configuration</li>
+            <li>Settings (timezone, temperature unit, language)</li>
+            <li>Sun times (sunrise/sunset)</li>
+            <li>Available updates</li>
+        </ul>
+
+        <h2>Troubleshooting</h2>
+
+        <h3>App shows "Credentials Not Configured"</h3>
+        <ul>
+            <li>Make sure you created the .env file with correct credentials</li>
+            <li>Check the file is in the correct location (same directory as the app)</li>
+            <li>Verify the file is named exactly .env (not .env.txt)</li>
+            <li>Restart the application after creating/modifying .env</li>
+        </ul>
+
+        <h3>Cannot connect to HC3</h3>
+        <ul>
+            <li>Verify your HC3 IP address is correct</li>
+            <li>Check your computer is on the same network as HC3</li>
+            <li>Test by opening http://YOUR_HC3_IP in a browser</li>
+            <li>Verify username and password are correct</li>
+        </ul>
+
+        <h2>Security &amp; Privacy</h2>
+        <ul>
+            <li>Your credentials are stored locally on your computer only</li>
+            <li>No data is sent to external servers</li>
+            <li>The app connects directly to your HC3 on your local network</li>
+            <li>Keep your .env file secure (same as any password file)</li>
+        </ul>
+
+        <h2>System Requirements</h2>
+
+        <p><strong>macOS:</strong> macOS 10.15 (Catalina) or later, Apple Silicon or Intel processor</p>
+        <p><strong>Windows:</strong> Windows 10 or later, 64-bit processor</p>
+
+        <hr>
+
+        <p><strong>Support:</strong> Report issues at <a href="https://github.com/jangabrielsson/EventLogger/issues">github.com/jangabrielsson/EventLogger/issues</a></p>
+        <p><strong>GitHub:</strong> <a href="https://github.com/jangabrielsson/EventLogger">github.com/jangabrielsson/EventLogger</a></p>
+    </div>
+
+    <script>
+        function copyContent() {
+            const content = document.getElementById('content');
+            const range = document.createRange();
+            range.selectNode(content);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            
+            try {
+                document.execCommand('copy');
+                const button = document.querySelector('button');
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#2196F3';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#4CAF50';
+                }, 2000);
+            } catch (err) {
+                alert('Copy failed. Please select and copy manually.');
+            }
+            
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+</body>
+</html>

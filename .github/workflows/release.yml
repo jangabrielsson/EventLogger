@@ -1,0 +1,86 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0, etc.
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            name: macOS (Apple Silicon)
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            name: macOS (Intel)
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: Windows
+
+    runs-on: ${{ matrix.platform.os }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform.target }}
+
+      - name: Install dependencies (macOS)
+        if: matrix.platform.os == 'macos-latest'
+        run: |
+          rustup target add ${{ matrix.platform.target }}
+
+      - name: Install dependencies (Windows)
+        if: matrix.platform.os == 'windows-latest'
+        run: |
+          rustup target add ${{ matrix.platform.target }}
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'HC3 Event Logger ${{ github.ref_name }}'
+          releaseBody: |
+            ## What's Changed
+            
+            See the assets below to download the app for your platform.
+            
+            ### Installation
+            
+            **macOS:**
+            - Download the `.dmg` file for your Mac architecture (Apple Silicon or Intel)
+            - Open the `.dmg` file and drag the app to Applications
+            - If you get a security warning, go to System Preferences > Security & Privacy and allow the app
+            
+            **Windows:**
+            - Download the `.msi` installer
+            - Run the installer and follow the prompts
+            - If Windows Defender SmartScreen appears, click "More info" and then "Run anyway"
+            
+            ### Notes
+            - This is an automated build from the `${{ github.ref_name }}` tag
+            - For issues, please report them on the [Issues page](https://github.com/${{ github.repository }}/issues)
+          releaseDraft: false
+          prerelease: false
+          args: --target ${{ matrix.platform.target }}
+
+  create-release:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release created
+        run: echo "Release ${{ github.ref_name }} has been published with all platform builds!"

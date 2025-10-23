@@ -26,6 +26,24 @@ The script will:
 7. ✓ Create a git commit with message `chore: bump version to X.Y.Z`
 8. ✓ Create a git tag `vX.Y.Z`
 9. ✓ Push commit and tag to GitHub
+10. ✓ Trigger GitHub Actions to build releases for macOS and Windows
+
+## Automated Builds
+
+When you push a version tag (e.g., `v0.2.0`), GitHub Actions automatically:
+
+- Builds the app for:
+  - **macOS Apple Silicon** (.dmg)
+  - **macOS Intel** (.dmg)
+  - **Windows** (.msi)
+- Creates a GitHub Release with all binaries attached
+- Includes installation instructions in the release notes
+
+You can monitor the build progress at:
+`https://github.com/YOUR_USERNAME/EventLogger/actions`
+
+The release will appear at:
+`https://github.com/YOUR_USERNAME/EventLogger/releases`
 
 ## Version Numbering Guidelines
 

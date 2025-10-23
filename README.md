@@ -1,53 +1,113 @@
-# HC3 Event Logger - Tauri App
+# HC3 Event Logger
 
 A desktop application for monitoring Fibaro Home Center 3 (HC3) events in real-time.
 
-## Setup
+## Download
 
-### 1. Configure HC3 Credentials
+**Recommended:** Download the latest pre-built release from GitHub:
 
-You need to configure your HC3 connection details before using the app. Choose one of these methods:
+👉 **[Download Latest Release](https://github.com/jangabrielsson/EventLogger/releases/latest)**
 
-#### Option A: Environment Variables (Recommended for production)
+Available for:
+- **macOS (Apple Silicon M1/M2/M3):** `HC3-Event-Logger_aarch64.app.tar.gz`
+- **macOS (Intel):** `HC3-Event-Logger_x64.app.tar.gz`
+- **Windows:** `HC3-Event-Logger_x64-setup.exe`
 
-Set these environment variables before launching the app:
+For detailed installation instructions, see [FORUM_POST.html](FORUM_POST.html) or the [releases page](https://github.com/jangabrielsson/EventLogger/releases/latest).
 
+## Features
+
+- ✅ Real-time event monitoring with live updates
+- ✅ HC3 system information viewer
+- ✅ Multi-window interface
+- ✅ No CORS issues (native app bypasses browser restrictions)
+- ✅ Small file size (~5MB)
+- ✅ Fast startup and low memory usage
+- ✅ Secure local connection to your HC3
+
+## Quick Start
+
+### 1. Install the App
+
+**macOS:**
+1. Download the appropriate `.tar.gz` file for your Mac
+2. Extract and drag to Applications folder
+3. Right-click and select "Open" (first time only)
+
+**Windows:**
+1. Download `HC3-Event-Logger_x64-setup.exe`
+2. Run the installer
+3. Launch from Start Menu
+
+### 2. Configure HC3 Credentials
+
+You need to configure your HC3 connection details before using the app.
+
+#### Option A: .env File (Recommended)
+
+Create a file named `.env` in the same directory as the application:
+
+**macOS:** Usually in the same folder as the .app file
+**Windows:** Usually in `C:\Program Files\HC3 Event Logger\`
+
+Content of `.env` file:
+```
+HC3_HOST=192.168.1.57
+HC3_USER=admin
+HC3_PASSWORD=yourpassword
+```
+
+Replace with your actual HC3 IP address, username, and password.
+
+#### Option B: Environment Variables
+
+**macOS/Linux:**
 ```bash
 export HC3_HOST=192.168.1.57
 export HC3_USER=admin
 export HC3_PASSWORD=yourpassword
-```
-
-Then launch the app:
-```bash
-# Development
-cargo tauri dev
-
-# Production (macOS)
 open /Applications/HC3\ Event\ Logger.app
 ```
 
-#### Option B: .env File (Recommended for development)
+**Windows (PowerShell):**
+```powershell
+$env:HC3_HOST="192.168.1.57"
+$env:HC3_USER="admin"
+$env:HC3_PASSWORD="yourpassword"
+Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"
+```
 
-1. Copy the example file:
+**Note:** Restart the application after configuring credentials.
+
+---
+
+## For Developers
+
+---
+
+## For Developers
+
+### Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/jangabrielsson/EventLogger.git
+   cd EventLogger
+   ```
+
+2. **Configure credentials** (for development)
    ```bash
    cp .env.example .env
+   # Edit .env with your HC3 credentials
    ```
 
-2. Edit `.env` with your HC3 credentials:
-   ```
-   HC3_HOST=192.168.1.57
-   HC3_USER=admin
-   HC3_PASSWORD=yourpassword
-   ```
+3. **Requirements**
+   - Rust (install from https://rustup.rs)
+   - Tauri CLI: `cargo install tauri-cli`
 
-3. The app will automatically load these on startup
+### Development Mode (Hot Reload)
 
-**Note:** The `.env` file is gitignored and will not be committed to version control.
-
-## Development Mode (Hot Reload)
-
-To run the app in development mode with hot-reload:
+Run the app in development mode with hot-reload:
 
 ```bash
 cargo tauri dev
@@ -61,46 +121,45 @@ This will:
 
 You can edit files in the `src/` directory and see changes immediately without restarting!
 
-## Building for Distribution
+### Building for Distribution
 
-To create a standalone `.app` for macOS:
-
+**macOS:**
 ```bash
 cargo tauri build
 ```
+Built app will be in: `src-tauri/target/release/bundle/macos/`
 
-The built app will be in: `src-tauri/target/release/bundle/macos/`
-
-## Project Structure
-
+**Windows:**
+```bash
+cargo tauri build
 ```
-EventLogger2/
-├── src/                    # Frontend files (HTML, CSS, JS)
-│   ├── index.html         # Main UI
-│   ├── styles.css         # Styles
-│   └── script.js          # HC3 communication logic
-└── src-tauri/             # Rust backend
-    ├── src/               # Rust source code
-    ├── tauri.conf.json    # Tauri configuration
-    └── Cargo.toml         # Rust dependencies
-```
+Built installer will be in: `src-tauri/target/release/bundle/nsis/`
 
-## Features
-
-- ✅ No CORS issues (native app bypasses browser restrictions)
-- ✅ Hot reload in dev mode
-- ✅ Small file size (~5MB)
-- ✅ Single `.app` file for distribution
-- ✅ Fast startup and low memory usage
-
-## Development Workflow
+### Development Workflow
 
 1. **Start dev mode**: `cargo tauri dev`
 2. **Edit files**: Modify `src/index.html`, `src/styles.css`, or `src/script.js`
 3. **See changes**: The app automatically reloads
 4. **Build**: When ready, run `cargo tauri build`
 
-## Configuration
+### Project Structure
+
+```
+EventLogger/
+├── src/                    # Frontend files (HTML, CSS, JS)
+│   ├── index.html         # Main window UI
+│   ├── hc3-info.html      # HC3 System Info window
+│   ├── styles.css         # Styles
+│   └── script.js          # HC3 communication logic
+└── src-tauri/             # Rust backend
+    ├── src/               # Rust source code
+    │   ├── main.rs        # Entry point
+    │   └── lib.rs         # App setup, commands, menu
+    ├── tauri.conf.json    # Tauri configuration
+    └── Cargo.toml         # Rust dependencies
+```
+
+### Configuration
 
 Edit `src-tauri/tauri.conf.json` to change:
 - Window size and title
@@ -108,13 +167,32 @@ Edit `src-tauri/tauri.conf.json` to change:
 - Bundle identifier
 - Security settings
 
-## Requirements
+## Troubleshooting
 
-- Rust (already installed ✅)
-- Tauri CLI (already installed ✅)
+### App shows "Credentials Not Configured"
+- Ensure `.env` file exists in the correct location
+- Verify file is named exactly `.env` (not `.env.txt`)
+- Check credentials are correct
+- Restart the application
 
-## Notes
+### Cannot connect to HC3
+- Verify HC3 IP address is correct
+- Ensure computer is on same network as HC3
+- Test by opening `http://YOUR_HC3_IP` in a browser
 
-- No Node.js or npm required!
-- Direct connection to HC3 works (no proxy needed)
-- Use your HC3 IP address directly (e.g., `192.168.1.57`)
+### macOS: App won't open
+- Right-click app and select "Open" (first time only)
+- Go to System Preferences → Security & Privacy → "Open Anyway"
+
+### Windows: Installer blocked
+- Click "More info" → "Run anyway"
+- App is safe but not signed with Microsoft certificate
+
+## Support
+
+- **Issues:** [GitHub Issues](https://github.com/jangabrielsson/EventLogger/issues)
+- **Documentation:** See [FORUM_POST.html](FORUM_POST.html) for detailed instructions
+
+## License
+
+See [LICENSE](LICENSE) file for details.

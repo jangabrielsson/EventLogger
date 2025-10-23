@@ -304,14 +304,26 @@ class HC3EventLogger {
     }
 
     async loadConfig() {
-        // Try to get config from Tauri command line args or environment
+        // Try to get config from environment variables via Tauri
         if (window.__TAURI__) {
             try {
-                // For now, use hardcoded values from .env
-                // In production, these would be passed via CLI args
-                this.config.ip = '192.168.1.57';
-                this.config.username = 'admin';
-                this.config.password = 'Admin1477!';
+                const { invoke } = window.__TAURI__.core;
+                const config = await invoke('get_hc3_config');
+                
+                console.log('Config from environment:', {
+                    host: config.host || 'NOT SET',
+                    user: config.user || 'NOT SET',
+                    password: config.password ? 'SET' : 'NOT SET'
+                });
+
+                if (!config.host || !config.user || !config.password) {
+                    this.showConfigError();
+                    return;
+                }
+                
+                this.config.ip = config.host;
+                this.config.username = config.user;
+                this.config.password = config.password;
                 
                 // Save to localStorage so other windows can access
                 localStorage.setItem('hc3Host', this.config.ip);
@@ -331,6 +343,50 @@ class HC3EventLogger {
                 this.updateStatus('', 'Configuration Error');
             }
         }
+    }
+
+    showConfigError() {
+        const errorHtml = `
+            <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 1.5rem; margin: 2rem;">
+                <h2 style="color: #856404; margin-bottom: 1rem;">⚠️ HC3 Credentials Not Configured</h2>
+                <p style="color: #856404; margin-bottom: 0.75rem; line-height: 1.6;">
+                    The HC3 connection settings have not been configured. 
+                    To connect to your HC3 controller, you need to set up your credentials.
+                </p>
+                
+                <div style="background: white; border-left: 4px solid #ffc107; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.9rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">Option 1: Environment Variables</strong>
+                    Set these before launching the app:<br><br>
+                    <code style="background: #f5f5f5; padding: 2px 6px;">HC3_HOST</code> - HC3 IP address (e.g., 192.168.1.57)<br>
+                    <code style="background: #f5f5f5; padding: 2px 6px;">HC3_USER</code> - HC3 username (e.g., admin)<br>
+                    <code style="background: #f5f5f5; padding: 2px 6px;">HC3_PASSWORD</code> - HC3 password
+                </div>
+                
+                <div style="background: white; border-left: 4px solid #ffc107; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.9rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">Option 2: .env File</strong>
+                    Create a <code style="background: #f5f5f5; padding: 2px 6px;">.env</code> file in the project root:<br><br>
+                    HC3_HOST=192.168.1.57<br>
+                    HC3_USER=admin<br>
+                    HC3_PASSWORD=yourpassword
+                </div>
+                
+                <div style="background: white; border-left: 4px solid #ffc107; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.9rem;">
+                    <strong style="display: block; margin-bottom: 0.5rem;">macOS: Launch from Terminal</strong>
+                    export HC3_HOST=192.168.1.57<br>
+                    export HC3_USER=admin<br>
+                    export HC3_PASSWORD=yourpassword<br>
+                    open /Applications/HC3\\ Event\\ Logger.app
+                </div>
+                
+                <p style="margin-top: 1rem; color: #856404;">
+                    <strong>Note:</strong> After setting credentials, restart the application.
+                </p>
+            </div>
+        `;
+        
+        // Show in main content area
+        document.querySelector('.content').innerHTML = errorHtml;
+        this.updateStatus('', 'Credentials Not Configured');
     }
 
     updateStatus(indicatorClass, text) {

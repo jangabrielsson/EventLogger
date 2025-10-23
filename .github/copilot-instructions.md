@@ -3,6 +3,22 @@
 ## Project Overview
 HC3 Event Logger - A Tauri 2.x desktop application for monitoring Fibaro Home Center 3 events in real-time.
 
+## Setup
+
+### Credential Configuration
+The app requires HC3 credentials to be configured via environment variables or .env file:
+
+```bash
+# Required environment variables
+HC3_HOST=192.168.1.57  # HC3 IP address (no http://)
+HC3_USER=admin         # HC3 username
+HC3_PASSWORD=password  # HC3 password
+```
+
+The Rust backend reads these using `std::env::var()` and the `.env` file is loaded via the `dotenvy` crate on app startup.
+
+If credentials are not set, both the main window and HC3 System Info window display user-friendly error dialogs with instructions.
+
 ## Technology Stack
 - **Framework**: Tauri 2.9.1
 - **Frontend**: Vanilla HTML/CSS/JavaScript

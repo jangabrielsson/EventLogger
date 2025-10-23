@@ -2,6 +2,49 @@
 
 A desktop application for monitoring Fibaro Home Center 3 (HC3) events in real-time.
 
+## Setup
+
+### 1. Configure HC3 Credentials
+
+You need to configure your HC3 connection details before using the app. Choose one of these methods:
+
+#### Option A: Environment Variables (Recommended for production)
+
+Set these environment variables before launching the app:
+
+```bash
+export HC3_HOST=192.168.1.57
+export HC3_USER=admin
+export HC3_PASSWORD=yourpassword
+```
+
+Then launch the app:
+```bash
+# Development
+cargo tauri dev
+
+# Production (macOS)
+open /Applications/HC3\ Event\ Logger.app
+```
+
+#### Option B: .env File (Recommended for development)
+
+1. Copy the example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` with your HC3 credentials:
+   ```
+   HC3_HOST=192.168.1.57
+   HC3_USER=admin
+   HC3_PASSWORD=yourpassword
+   ```
+
+3. The app will automatically load these on startup
+
+**Note:** The `.env` file is gitignored and will not be committed to version control.
+
 ## Development Mode (Hot Reload)
 
 To run the app in development mode with hot-reload:

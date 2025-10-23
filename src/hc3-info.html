@@ -91,6 +91,48 @@
             border-radius: 6px;
             margin: 1rem 0;
         }
+
+        .error-dialog {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .error-dialog h2 {
+            color: #856404;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-dialog p {
+            color: #856404;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .error-dialog .instructions {
+            background: white;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.9rem;
+        }
+
+        .error-dialog .instructions strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .error-dialog code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+        }
     </style>
 </head>
 <body>
@@ -115,15 +157,46 @@
                 const { fetch } = window.__TAURI__.http;
 
                 // Get HC3 connection info from localStorage (set by main window)
-                const hc3Host = localStorage.getItem('hc3Host') || '192.168.1.57';
-                const hc3User = localStorage.getItem('hc3User') || '';
-                const hc3Password = localStorage.getItem('hc3Password') || '';
+                const hc3Host = localStorage.getItem('hc3Host');
+                const hc3User = localStorage.getItem('hc3User');
+                const hc3Password = localStorage.getItem('hc3Password');
                 
                 console.log('HC3 Host:', hc3Host);
                 console.log('HC3 User:', hc3User);
                 
-                if (!hc3User || !hc3Password) {
-                    throw new Error('HC3 credentials not found in localStorage');
+                if (!hc3Host || !hc3User || !hc3Password) {
+                    contentDiv.innerHTML = `
+                        <div class="error-dialog">
+                            <h2>⚠️ HC3 Credentials Not Configured</h2>
+                            <p>
+                                The HC3 connection settings have not been configured. 
+                                To access HC3 system information, you need to set up your HC3 credentials.
+                            </p>
+                            
+                            <div class="instructions">
+                                <strong>Option 1: Environment Variables</strong>
+                                Set the following environment variables before launching the app:
+                                <br><br>
+                                <code>HC3_HOST</code> - Your HC3 IP address (e.g., 192.168.1.57)<br>
+                                <code>HC3_USER</code> - Your HC3 username (e.g., admin)<br>
+                                <code>HC3_PASSWORD</code> - Your HC3 password
+                            </div>
+                            
+                            <div class="instructions">
+                                <strong>Option 2: .env File</strong>
+                                Create a <code>.env</code> file in the project root with:
+                                <br><br>
+                                <code>HC3_HOST=192.168.1.57</code><br>
+                                <code>HC3_USER=admin</code><br>
+                                <code>HC3_PASSWORD=yourpassword</code>
+                            </div>
+                            
+                            <p style="margin-top: 1rem;">
+                                <strong>Note:</strong> After setting credentials, restart the application for changes to take effect.
+                            </p>
+                        </div>
+                    `;
+                    return;
                 }
                 
                 const authHeader = 'Basic ' + btoa(hc3User + ':' + hc3Password);

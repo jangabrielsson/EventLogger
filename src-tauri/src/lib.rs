@@ -1,5 +1,21 @@
 use tauri::{Manager, menu::{Menu, MenuItem, Submenu, PredefinedMenuItem}};
 
+#[derive(serde::Serialize)]
+struct HC3Config {
+    host: Option<String>,
+    user: Option<String>,
+    password: Option<String>,
+}
+
+#[tauri::command]
+fn get_hc3_config() -> HC3Config {
+    HC3Config {
+        host: std::env::var("HC3_HOST").ok(),
+        user: std::env::var("HC3_USER").ok(),
+        password: std::env::var("HC3_PASSWORD").ok(),
+    }
+}
+
 #[tauri::command]
 fn open_hc3_info_window(app: tauri::AppHandle) {
     // Check if window already exists
@@ -23,6 +39,9 @@ fn open_hc3_info_window(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+  // Try to load .env file (ignore errors if it doesn't exist)
+  let _ = dotenvy::dotenv();
+  
   tauri::Builder::default()
     .plugin(tauri_plugin_http::init())
     .setup(|app| {
@@ -83,7 +102,7 @@ pub fn run() {
 
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![open_hc3_info_window])
+    .invoke_handler(tauri::generate_handler![open_hc3_info_window, get_hc3_config])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

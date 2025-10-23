@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HC3 Info</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1d1d1f;
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+        }
+
+        .info-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-section h2 {
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .info-row {
+            display: flex;
+            padding: 0.75rem;
+            border-bottom: 1px solid #f5f5f7;
+        }
+
+        .info-label {
+            flex: 0 0 150px;
+            font-weight: 600;
+            color: #86868b;
+        }
+
+        .info-value {
+            flex: 1;
+            color: #1d1d1f;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #86868b;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HC3 System Information</h1>
+        
+        <div id="content">
+            <div class="loading">Loading HC3 information...</div>
+        </div>
+    </div>
+
+    <script type="module">
+        async function fetchHC3Info() {
+            const contentDiv = document.getElementById('content');
+            
+            try {
+                // Check if Tauri is available
+                if (!window.__TAURI__) {
+                    throw new Error('Tauri API not available');
+                }
+
+                const { fetch } = window.__TAURI__.http;
+
+                // Get HC3 connection info from localStorage (set by main window)
+                const hc3Host = localStorage.getItem('hc3Host') || '192.168.1.57';
+                const hc3User = localStorage.getItem('hc3User') || '';
+                const hc3Password = localStorage.getItem('hc3Password') || '';
+                
+                console.log('HC3 Host:', hc3Host);
+                console.log('HC3 User:', hc3User);
+                
+                if (!hc3User || !hc3Password) {
+                    throw new Error('HC3 credentials not found in localStorage');
+                }
+                
+                const authHeader = 'Basic ' + btoa(hc3User + ':' + hc3Password);
+                
+                console.log('Fetching from:', `http://${hc3Host}/api/settings/info`);
+                
+                // Fetch system info using Tauri's HTTP client
+                const settingsResponse = await fetch(`http://${hc3Host}/api/settings/info`, {
+                    method: 'GET',
+                    headers: { 'Authorization': authHeader },
+                    responseType: 1 // Text response type
+                });
+
+                console.log('Settings response:', settingsResponse);
+
+                if (!settingsResponse.ok) {
+                    throw new Error(`Failed to fetch HC3 data (status: ${settingsResponse.status})`);
+                }
+
+                // Get the text data and parse JSON
+                const responseText = await settingsResponse.text();
+                console.log('Response text:', responseText);
+                
+                const settingsInfo = JSON.parse(responseText);
+                console.log('Parsed settingsInfo:', settingsInfo);
+
+                // Display the information
+                contentDiv.innerHTML = `
+                    <div class="info-section">
+                        <h2>Connection Status</h2>
+                        <div class="info-row">
+                            <div class="info-label">Status:</div>
+                            <div class="info-value">
+                                <span class="status connected">Connected</span>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">IP Address:</div>
+                            <div class="info-value">${hc3Host}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h2>System Information</h2>
+                        <div class="info-row">
+                            <div class="info-label">HC Name:</div>
+                            <div class="info-value">${settingsInfo.hcName || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Serial Number:</div>
+                            <div class="info-value">${settingsInfo.serialNumber || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Software Version:</div>
+                            <div class="info-value">${settingsInfo.softVersion || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Platform:</div>
+                            <div class="info-value">${settingsInfo.platform || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">MAC Address:</div>
+                            <div class="info-value">${settingsInfo.mac || 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h2>Z-Wave & Zigbee</h2>
+                        <div class="info-row">
+                            <div class="info-label">Z-Wave Version:</div>
+                            <div class="info-value">${settingsInfo.zwaveVersion || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Z-Wave Region:</div>
+                            <div class="info-value">${settingsInfo.zwaveRegion || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Z-Wave Engine:</div>
+                            <div class="info-value">${settingsInfo.zwaveEngineVersion || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Zigbee Status:</div>
+                            <div class="info-value">${settingsInfo.zigbeeStatus ? 'Enabled' : 'Disabled'}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h2>Settings</h2>
+                        <div class="info-row">
+                            <div class="info-label">Temperature Unit:</div>
+                            <div class="info-value">${settingsInfo.temperatureUnit || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Language:</div>
+                            <div class="info-value">${settingsInfo.defaultLanguage || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Time Format:</div>
+                            <div class="info-value">${settingsInfo.timeFormat || 'N/A'} hour</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Date Format:</div>
+                            <div class="info-value">${settingsInfo.dateFormat || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Currency:</div>
+                            <div class="info-value">${settingsInfo.currency || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Timezone Offset:</div>
+                            <div class="info-value">${settingsInfo.timezoneOffset ? (settingsInfo.timezoneOffset / 3600) + ' hours' : 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h2>Sun Times (Today)</h2>
+                        <div class="info-row">
+                            <div class="info-label">Sunrise:</div>
+                            <div class="info-value">${settingsInfo.sunriseHour || 'N/A'}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Sunset:</div>
+                            <div class="info-value">${settingsInfo.sunsetHour || 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    ${settingsInfo.updateStableAvailable ? `
+                    <div class="info-section">
+                        <h2>Updates Available</h2>
+                        <div class="info-row">
+                            <div class="info-label">Current Version:</div>
+                            <div class="info-value">${settingsInfo.softVersion}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Latest Stable:</div>
+                            <div class="info-value" style="color: #667eea; font-weight: 600;">${settingsInfo.newestStableVersion} ⬆️</div>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+                
+            } catch (error) {
+                console.error('Error fetching HC3 info:', error);
+                console.error('Error stack:', error.stack);
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        <strong>Failed to load HC3 information</strong><br>
+                        <strong>Error:</strong> ${error.message}<br>
+                        <strong>Stack:</strong> ${error.stack || 'No stack trace'}<br><br>
+                        <strong>Debug info:</strong><br>
+                        - HC3 Host: ${localStorage.getItem('hc3Host') || 'NOT SET'}<br>
+                        - HC3 User: ${localStorage.getItem('hc3User') || 'NOT SET'}<br>
+                        - HC3 Password: ${localStorage.getItem('hc3Password') ? 'SET' : 'NOT SET'}<br>
+                        - Tauri Available: ${window.__TAURI__ ? 'YES' : 'NO'}<br><br>
+                        Make sure the HC3 connection settings are configured in the main window.
+                    </div>
+                `;
+            }
+        }
+
+        // Fetch info when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, fetching HC3 info...');
+            fetchHC3Info();
+        });
+    </script>
+</body>
+</html>

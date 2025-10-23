@@ -313,6 +313,11 @@ class HC3EventLogger {
                 this.config.username = 'admin';
                 this.config.password = 'Admin1477!';
                 
+                // Save to localStorage so other windows can access
+                localStorage.setItem('hc3Host', this.config.ip);
+                localStorage.setItem('hc3User', this.config.username);
+                localStorage.setItem('hc3Password', this.config.password);
+                
                 console.log('Config loaded:', {
                     ip: this.config.ip,
                     username: this.config.username,

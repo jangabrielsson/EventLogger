@@ -39,8 +39,19 @@ fn open_hc3_info_window(app: tauri::AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  // Try to load .env file (ignore errors if it doesn't exist)
+  // Try to load .env file from multiple locations:
+  // 1. Current working directory
+  // 2. Home directory (~/.env)
+  // 3. Same directory as the executable
+  
+  // Try current directory first
   let _ = dotenvy::dotenv();
+  
+  // Try home directory
+  if let Some(home_dir) = std::env::var_os("HOME") {
+    let home_env = std::path::PathBuf::from(home_dir).join(".env");
+    let _ = dotenvy::from_path(home_env);
+  }
   
   tauri::Builder::default()
     .plugin(tauri_plugin_http::init())

@@ -44,7 +44,7 @@
 
         <h3>Option 1: Using a .env File (Recommended)</h3>
 
-        <p>Create a file named <strong>.env</strong> in the same directory as the application with the following content:</p>
+        <p>Create a file named <strong>.env</strong> with the following content:</p>
 
         <pre>HC3_HOST=192.168.1.57
 HC3_USER=admin
@@ -56,6 +56,14 @@ HC3_PASSWORD=yourpassword</pre>
             <li>HC3_USER - Your HC3 username (usually "admin")</li>
             <li>HC3_PASSWORD - Your HC3 password</li>
         </ul>
+
+        <p><strong>Where to place the .env file:</strong></p>
+        <p><strong>macOS:</strong> Place in your home directory: ~/.env (easiest - just create it in your home folder)</p>
+        <p><strong>Windows:</strong> Place in your user folder: C:\Users\YourUsername\.env</p>
+
+        <p><strong>Quick create commands:</strong></p>
+        <p>macOS: <code>nano ~/.env</code> (then paste content, Ctrl+X to save)</p>
+        <p>Windows: <code>notepad %USERPROFILE%\.env</code> (then paste content and save)</p>
 
         <h3>Option 2: Using Environment Variables</h3>
 
@@ -79,7 +87,7 @@ Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
             <li>Download the appropriate file for your Mac (Apple Silicon or Intel)</li>
             <li>Extract the downloaded .tar.gz file (double-click in Finder)</li>
             <li>Drag HC3 Event Logger.app to your Applications folder</li>
-            <li>Create a .env file in the same directory with your HC3 credentials (see above)</li>
+            <li>Create a .env file in your home directory: ~/.env with your HC3 credentials (see above)</li>
             <li>Right-click the app and select "Open" (first time only for macOS security)</li>
         </ol>
 
@@ -94,7 +102,7 @@ Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
         <ol>
             <li>Download HC3-Event-Logger_x64-setup.exe</li>
             <li>Run the installer and follow the wizard</li>
-            <li>Create a .env file in the installation directory (usually C:\Program Files\HC3 Event Logger\) with your credentials</li>
+            <li>Create a .env file in your user folder: C:\Users\YourUsername\.env with your credentials</li>
             <li>Launch from Start Menu or desktop shortcut</li>
         </ol>
 

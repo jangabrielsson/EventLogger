@@ -45,16 +45,35 @@ You need to configure your HC3 connection details before using the app.
 
 #### Option A: .env File (Recommended)
 
-Create a file named `.env` in the same directory as the application:
+Create a file named `.env` with your HC3 credentials. The app checks these locations in order:
 
-**macOS:** Usually in the same folder as the .app file
-**Windows:** Usually in `C:\Program Files\HC3 Event Logger\`
+**macOS:**
+1. Your home directory: `~/.env` (Recommended - easiest to create and manage)
+2. Current working directory when app is launched
+3. Same directory as the .app file
+
+**Windows:**
+1. Your home directory: `C:\Users\YourUsername\.env` (Recommended)
+2. Installation directory: `C:\Program Files\HC3 Event Logger\.env`
 
 Content of `.env` file:
 ```
 HC3_HOST=192.168.1.57
 HC3_USER=admin
 HC3_PASSWORD=yourpassword
+```
+
+**Create the file on macOS:**
+```bash
+nano ~/.env
+# Paste the content above, edit with your credentials
+# Press Ctrl+X, then Y, then Enter to save
+```
+
+**Create the file on Windows:**
+```powershell
+notepad $env:USERPROFILE\.env
+# Paste the content above, edit with your credentials, and save
 ```
 
 Replace with your actual HC3 IP address, username, and password.

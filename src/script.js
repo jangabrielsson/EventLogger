@@ -363,19 +363,23 @@ class HC3EventLogger {
                 </div>
                 
                 <div style="background: white; border-left: 4px solid #ffc107; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.9rem;">
-                    <strong style="display: block; margin-bottom: 0.5rem;">Option 2: .env File</strong>
-                    Create a <code style="background: #f5f5f5; padding: 2px 6px;">.env</code> file in the project root:<br><br>
+                    <strong style="display: block; margin-bottom: 0.5rem;">Option 2: .env File (Recommended)</strong>
+                    Create a <code style="background: #f5f5f5; padding: 2px 6px;">~/.env</code> file in your home directory:<br><br>
+                    <strong>macOS/Linux:</strong> <code style="background: #f5f5f5; padding: 2px 6px;">nano ~/.env</code><br>
+                    <strong>Windows:</strong> <code style="background: #f5f5f5; padding: 2px 6px;">notepad %USERPROFILE%\\.env</code><br><br>
+                    Content:<br>
                     HC3_HOST=192.168.1.57<br>
                     HC3_USER=admin<br>
                     HC3_PASSWORD=yourpassword
                 </div>
                 
                 <div style="background: white; border-left: 4px solid #ffc107; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.9rem;">
-                    <strong style="display: block; margin-bottom: 0.5rem;">macOS: Launch from Terminal</strong>
-                    export HC3_HOST=192.168.1.57<br>
-                    export HC3_USER=admin<br>
-                    export HC3_PASSWORD=yourpassword<br>
-                    open /Applications/HC3\\ Event\\ Logger.app
+                    <strong style="display: block; margin-bottom: 0.5rem;">Important:</strong>
+                    Variable names must be exactly:<br>
+                    • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_HOST</code> (not HC3_URL)<br>
+                    • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_USER</code> (not HC3_USERNAME)<br>
+                    • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_PASSWORD</code><br><br>
+                    HC3_HOST should be just the IP address (no http://)
                 </div>
                 
                 <p style="margin-top: 1rem; color: #856404;">
@@ -385,7 +389,12 @@ class HC3EventLogger {
         `;
         
         // Show in main content area
-        document.querySelector('.content').innerHTML = errorHtml;
+        const contentElement = document.querySelector('.content');
+        if (contentElement) {
+            contentElement.innerHTML = errorHtml;
+        } else {
+            console.error('Content element not found for showing config error');
+        }
         this.updateStatus('', 'Credentials Not Configured');
     }
 

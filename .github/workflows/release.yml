@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'  # Triggers on version tags like v0.1.0, v1.0.0, etc.
 
+permissions:
+  contents: write
+
 jobs:
   release:
     strategy:

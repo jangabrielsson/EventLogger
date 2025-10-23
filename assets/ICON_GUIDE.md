@@ -78,10 +78,10 @@ Upload your SVG or a high-res PNG and download the generated icon pack.
 
 ## Customizing the Icon
 
-The source SVG file is at: `icon-source.svg`
+The source SVG file is at: `assets/icon-source.svg`
 
 To modify colors or design:
-1. Open `icon-source.svg` in a text editor or vector editor (Inkscape, Figma, Adobe Illustrator)
+1. Open `assets/icon-source.svg` in a text editor or vector editor (Inkscape, Figma, Adobe Illustrator)
 2. Edit the colors:
    - Blue background: `#1e3a8a` (change the fill in the circle element)
    - Orange dots: `#f97316` (change the fill in the event dots)
@@ -104,8 +104,8 @@ The fastest way to get started:
 ```bash
 # From the project root
 brew install imagemagick
-convert -background none icon-source.svg -resize 1024x1024 icon-1024.png
-cargo tauri icon icon-1024.png
+convert -background none assets/icon-source.svg -resize 1024x1024 assets/icon-1024.png
+cargo tauri icon assets/icon-1024.png
 ```
 
 This will replace all icons automatically!

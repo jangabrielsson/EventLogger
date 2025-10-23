@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HC3 Event Logger</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HC3 Event Logger</h1>
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="event-filters">
+                <div class="filter-header">
+                    <h3>Event Types</h3>
+                    <label class="filter-item select-all">
+                        <input type="checkbox" id="selectAllEvents" checked>
+                        <span>Select All</span>
+                    </label>
+                </div>
+                <div class="filter-list" id="eventTypeFilters">
+                </div>
+            </aside>
+
+            <main class="event-table-container">
+                <div class="table-controls">
+                    <button class="btn btn-secondary" id="clearBtn">Clear Log</button>
+                    <button class="btn btn-secondary" id="clearFiltersBtn">Clear Filters</button>
+                    <label class="auto-scroll-toggle">
+                        <input type="checkbox" id="autoScroll" checked>
+                        <span>Auto-scroll</span>
+                    </label>
+                    <span class="event-count">Events: <span id="eventCount">0</span></span>
+                </div>
+                <table class="event-table">
+                    <thead>
+                        <tr>
+                            <th class="col-event resizable sortable" data-sort="event">
+                                Event
+                                <span class="sort-indicator">↕</span>
+                                <div class="resize-handle"></div>
+                            </th>
+                            <th class="col-time resizable sortable" data-sort="time">
+                                Time
+                                <span class="sort-indicator">↕</span>
+                                <div class="resize-handle"></div>
+                            </th>
+                            <th class="col-id resizable sortable" data-sort="id">
+                                ID
+                                <span class="sort-indicator">↕</span>
+                                <div class="resize-handle"></div>
+                            </th>
+                            <th class="col-value">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventTableBody">
+                    </tbody>
+                </table>
+            </main>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

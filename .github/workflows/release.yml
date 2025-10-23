@@ -67,7 +67,11 @@ jobs:
             **macOS:**
             - Download the `.dmg` file for your Mac architecture (Apple Silicon or Intel)
             - Open the `.dmg` file and drag the app to Applications
-            - If you get a security warning, go to System Preferences > Security & Privacy and allow the app
+            - **Important:** The app is not signed with an Apple Developer certificate, so you'll need to bypass Gatekeeper:
+              1. Open Terminal
+              2. Run: `xattr -cr /Applications/HC3\ Event\ Logger.app`
+              3. Or right-click the app, hold Option, click "Open", then confirm
+            - Alternative: Go to System Settings > Privacy & Security and click "Open Anyway" after the first launch attempt
             
             **Windows:**
             - Download the `.msi` installer

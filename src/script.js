@@ -73,6 +73,9 @@ class HC3EventLogger {
             this.toggleAllEventTypes(e.target.checked);
         });
         
+        // Initialize column widths as fixed pixels
+        this.initializeColumnWidths();
+        
         // Setup column resizing
         this.setupColumnResizing();
         
@@ -81,6 +84,22 @@ class HC3EventLogger {
         
         // Set initial sort indicator
         this.updateSortIndicators();
+    }
+    
+    initializeColumnWidths() {
+        const table = document.querySelector('.event-table');
+        const allColumns = Array.from(table.querySelectorAll('thead th'));
+        
+        // Lock in current widths as fixed pixels
+        allColumns.forEach(col => {
+            const width = col.offsetWidth;
+            col.style.width = width + 'px';
+            col.style.minWidth = width + 'px';
+            col.style.maxWidth = width + 'px';
+        });
+        
+        // Store the widths for later use
+        this.columnWidths = allColumns.map(col => col.offsetWidth);
     }
     
     clearFilters() {
@@ -164,37 +183,80 @@ class HC3EventLogger {
         
         resizableColumns.forEach(th => {
             const handle = th.querySelector('.resize-handle');
-            let startX, startWidth;
+            let startX, startWidth, allHeaderColumns, startWidths, columnIndex;
             
             handle.addEventListener('mousedown', (e) => {
                 e.preventDefault();
                 startX = e.pageX;
                 startWidth = th.offsetWidth;
                 
+                // Store all header columns and their starting widths
+                allHeaderColumns = Array.from(table.querySelectorAll('thead th'));
+                columnIndex = allHeaderColumns.indexOf(th);
+                startWidths = allHeaderColumns.map(col => col.offsetWidth);
+                
+                // Convert all columns to fixed pixel widths to prevent redistribution
+                allHeaderColumns.forEach((col, idx) => {
+                    const width = startWidths[idx];
+                    col.style.width = width + 'px';
+                    col.style.minWidth = width + 'px';
+                    col.style.maxWidth = width + 'px';
+                });
+                
+                // Also lock body row widths
+                this.updateBodyColumnWidths(startWidths);
+                
                 const onMouseMove = (e) => {
-                    const newWidth = startWidth + (e.pageX - startX);
+                    const delta = e.pageX - startX;
+                    const newWidth = startWidth + delta;
                     const minWidth = 50; // Minimum column width
                     
                     if (newWidth >= minWidth) {
-                        // Update both th and corresponding td elements
+                        // Update the resized header column
                         th.style.width = newWidth + 'px';
-                        const columnClass = Array.from(th.classList).find(cls => cls.startsWith('col-'));
-                        if (columnClass) {
-                            const tds = table.querySelectorAll(`.${columnClass}`);
-                            tds.forEach(td => {
-                                td.style.width = newWidth + 'px';
-                            });
-                        }
+                        th.style.minWidth = newWidth + 'px';
+                        th.style.maxWidth = newWidth + 'px';
+                        
+                        // Update all body cells in the same column
+                        const rows = table.querySelectorAll('tbody tr');
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            if (cells[columnIndex]) {
+                                cells[columnIndex].style.width = newWidth + 'px';
+                                cells[columnIndex].style.minWidth = newWidth + 'px';
+                                cells[columnIndex].style.maxWidth = newWidth + 'px';
+                            }
+                        });
                     }
                 };
                 
                 const onMouseUp = () => {
+                    // Update stored column widths after resize
+                    const allColumns = Array.from(table.querySelectorAll('thead th'));
+                    this.columnWidths = allColumns.map(col => col.offsetWidth);
+                    
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                 };
                 
                 document.addEventListener('mousemove', onMouseMove);
                 document.addEventListener('mouseup', onMouseUp);
+            });
+        });
+    }
+    
+    updateBodyColumnWidths(widths) {
+        const table = document.querySelector('.event-table');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, idx) => {
+                if (widths[idx]) {
+                    cell.style.width = widths[idx] + 'px';
+                    cell.style.minWidth = widths[idx] + 'px';
+                    cell.style.maxWidth = widths[idx] + 'px';
+                }
             });
         });
     }
@@ -474,7 +536,7 @@ class HC3EventLogger {
         const displayValue = shortValue.includes('<span') ? shortValue : this.escapeHtml(shortValue);
         
         row.innerHTML = `
-            <td class="col-event"><span class="event-type">${displayType}</span></td>
+            <td class="col-event"><span class="event-type clickable" title="Click to copy full event JSON">${displayType}</span></td>
             <td class="col-time"><span class="event-time">${time}</span></td>
             <td class="col-id"><span class="event-id ${isFiltered ? 'filtered' : ''}" data-id="${id}">${id}</span></td>
             <td class="col-value"><span class="event-value">${displayValue}<div class="value-tooltip">${this.escapeHtml(fullValue)}</div></span></td>
@@ -482,6 +544,16 @@ class HC3EventLogger {
         
         row.dataset.eventType = eventType;
         row.dataset.eventId = String(id);
+        
+        // Store the full event data on the row for later access
+        row.eventData = event;
+        
+        // Add click handler to Event cell to copy JSON
+        const eventSpan = row.querySelector('.event-type');
+        eventSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.copyEventToClipboard(event);
+        });
         
         // Add click handler to ID cell
         const idSpan = row.querySelector('.event-id');
@@ -500,6 +572,9 @@ class HC3EventLogger {
         
         this.eventTableBody.appendChild(row);
         
+        // Apply current column widths to new row
+        this.applyColumnWidthsToRow(row);
+        
         if (addToArray) {
             this.eventCount++;
             this.eventCountElement.textContent = this.eventCount;
@@ -507,6 +582,33 @@ class HC3EventLogger {
         
         if (this.autoScroll && addToArray) {
             this.eventTableBody.parentElement.scrollTop = this.eventTableBody.parentElement.scrollHeight;
+        }
+    }
+    
+    applyColumnWidthsToRow(row) {
+        const cells = row.querySelectorAll('td');
+        
+        // Use stored column widths if available, otherwise get from headers
+        if (this.columnWidths) {
+            cells.forEach((cell, idx) => {
+                if (this.columnWidths[idx]) {
+                    const width = this.columnWidths[idx];
+                    cell.style.width = width + 'px';
+                    cell.style.minWidth = width + 'px';
+                    cell.style.maxWidth = width + 'px';
+                }
+            });
+        } else {
+            const table = document.querySelector('.event-table');
+            const headerColumns = table.querySelectorAll('thead th');
+            cells.forEach((cell, idx) => {
+                if (headerColumns[idx]) {
+                    const width = headerColumns[idx].offsetWidth;
+                    cell.style.width = width + 'px';
+                    cell.style.minWidth = width + 'px';
+                    cell.style.maxWidth = width + 'px';
+                }
+            });
         }
     }
     
@@ -697,6 +799,52 @@ class HC3EventLogger {
         this.eventCount = 0;
         this.eventCountElement.textContent = '0';
         this.filteredIds.clear();
+    }
+    
+    async copyEventToClipboard(event) {
+        const jsonString = JSON.stringify(event, null, 2);
+        
+        try {
+            // Try to use the Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(jsonString);
+                this.showCopyNotification('Event JSON copied to clipboard!');
+            } else {
+                // Fallback for older browsers or Tauri
+                const textarea = document.createElement('textarea');
+                textarea.value = jsonString;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                this.showCopyNotification('Event JSON copied to clipboard!');
+            }
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+            this.showCopyNotification('Failed to copy to clipboard', true);
+        }
+    }
+    
+    showCopyNotification(message, isError = false) {
+        // Create or reuse notification element
+        let notification = document.getElementById('copyNotification');
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'copyNotification';
+            notification.className = 'copy-notification';
+            document.body.appendChild(notification);
+        }
+        
+        notification.textContent = message;
+        notification.className = 'copy-notification' + (isError ? ' error' : ' success');
+        notification.style.display = 'block';
+        
+        // Hide after 2 seconds
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 2000);
     }
 }
 

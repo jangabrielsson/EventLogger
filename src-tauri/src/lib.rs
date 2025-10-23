@@ -41,14 +41,15 @@ fn open_hc3_info_window(app: tauri::AppHandle) {
 pub fn run() {
   // Try to load .env file from multiple locations:
   // 1. Current working directory
-  // 2. Home directory (~/.env)
-  // 3. Same directory as the executable
+  // 2. Home directory (~/.env on Unix, %USERPROFILE%\.env on Windows)
   
   // Try current directory first
   let _ = dotenvy::dotenv();
   
-  // Try home directory
-  if let Some(home_dir) = std::env::var_os("HOME") {
+  // Try home directory (cross-platform)
+  // On Unix: $HOME, On Windows: %USERPROFILE%
+  let home_var = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
+  if let Ok(home_dir) = std::env::var(home_var) {
     let home_env = std::path::PathBuf::from(home_dir).join(".env");
     let _ = dotenvy::from_path(home_env);
   }

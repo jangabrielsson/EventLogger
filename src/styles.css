@@ -163,8 +163,41 @@ header h1 {
     user-select: none;
 }
 
-.event-count {
+.filter-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin-left: auto;
+}
+
+.filter-input-group label {
+    font-size: 0.875rem;
+    color: #86868b;
+    font-weight: 500;
+}
+
+.filter-input-group input[type="text"] {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #e5e5e7;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    width: 250px;
+    transition: all 0.2s;
+}
+
+.filter-input-group input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-input-group input[type="text"].filter-error {
+    border-color: #ff3b30;
+}
+
+.event-count {
+    margin-left: 0;
     font-size: 0.875rem;
     color: #86868b;
 }

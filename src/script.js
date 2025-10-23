@@ -38,6 +38,8 @@ class HC3EventLogger {
         this.sortColumn = 'time';
         this.sortDirection = 'desc'; // Start with newest first
         this.events = []; // Store all events for sorting
+        this.needsSort = false; // Track if we need to re-sort on next render
+        this.valueFilterPattern = null; // Regex pattern for filtering by value
         
         // Get configuration from environment
         this.config = {
@@ -61,6 +63,7 @@ class HC3EventLogger {
         this.eventTableBody = document.getElementById('eventTableBody');
         this.selectAllEvents = document.getElementById('selectAllEvents');
         this.eventTypeFilters = document.getElementById('eventTypeFilters');
+        this.valueFilterInput = document.getElementById('valueFilter');
     }
 
     bindEvents() {
@@ -71,6 +74,15 @@ class HC3EventLogger {
         });
         this.selectAllEvents.addEventListener('change', (e) => {
             this.toggleAllEventTypes(e.target.checked);
+        });
+        
+        // Setup value filter input with debouncing
+        let filterTimeout;
+        this.valueFilterInput.addEventListener('input', (e) => {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => {
+                this.updateValueFilter(e.target.value);
+            }, 300); // 300ms debounce
         });
         
         // Initialize column widths as fixed pixels
@@ -121,7 +133,34 @@ class HC3EventLogger {
         });
         this.selectAllEvents.checked = true;
         
+        // Clear value filter
+        this.valueFilterInput.value = '';
+        this.valueFilterPattern = null;
+        this.valueFilterInput.classList.remove('filter-error');
+        
         // Re-apply filters (which now shows everything)
+        this.filterDisplayedEvents();
+    }
+    
+    updateValueFilter(filterText) {
+        if (!filterText || filterText.trim() === '') {
+            // Empty filter matches everything
+            this.valueFilterPattern = null;
+            this.valueFilterInput.classList.remove('filter-error');
+        } else {
+            try {
+                // Try to compile the regex
+                this.valueFilterPattern = new RegExp(filterText, 'i'); // case-insensitive
+                this.valueFilterInput.classList.remove('filter-error');
+            } catch (error) {
+                // Invalid regex
+                console.warn('Invalid regex pattern:', error);
+                this.valueFilterInput.classList.add('filter-error');
+                this.valueFilterPattern = null;
+            }
+        }
+        
+        // Re-apply filters with new pattern
         this.filterDisplayedEvents();
     }
 
@@ -170,6 +209,9 @@ class HC3EventLogger {
                 
                 // Update UI indicators
                 this.updateSortIndicators();
+                
+                // Mark that sorting needs to happen
+                this.needsSort = true;
                 
                 // Re-render table with sorted events
                 this.renderTable();
@@ -389,11 +431,13 @@ class HC3EventLogger {
         this.eventCount++;
         this.eventCountElement.textContent = this.eventCount;
         
-        // If sorting is active, re-render entire table to maintain sort order
-        if (this.sortColumn) {
+        // Only re-render entire table if auto-scroll is on or sorting was just changed
+        // This prevents the list from jumping when user is reading with auto-scroll off
+        if (this.sortColumn && (this.autoScroll || this.needsSort)) {
             this.renderTable();
+            this.needsSort = false;
         } else {
-            // Otherwise just add to bottom (faster for large event lists)
+            // Otherwise just add to bottom (faster and doesn't disturb scroll position)
             this.addEventToTable(event, false); // false = don't add to events array again
         }
     }
@@ -432,15 +476,25 @@ class HC3EventLogger {
             });
         }
         
+        // Save current scroll position and height if auto-scroll is disabled
+        const scrollContainer = this.eventTableBody.parentElement;
+        const savedScrollTop = this.autoScroll ? null : scrollContainer.scrollTop;
+        const oldScrollHeight = this.autoScroll ? null : scrollContainer.scrollHeight;
+        
         // Clear and re-render table
         this.eventTableBody.innerHTML = '';
         sortedEvents.forEach(event => {
             this.addEventToTable(event, false); // false = don't add to events array again
         });
         
-        // Auto-scroll if enabled
+        // Restore scroll position or auto-scroll to bottom
         if (this.autoScroll) {
-            this.eventTableBody.parentElement.scrollTop = this.eventTableBody.parentElement.scrollHeight;
+            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        } else if (savedScrollTop !== null && oldScrollHeight !== null) {
+            // Adjust scroll position to compensate for content added at the top
+            const newScrollHeight = scrollContainer.scrollHeight;
+            const heightDifference = newScrollHeight - oldScrollHeight;
+            scrollContainer.scrollTop = savedScrollTop + heightDifference;
         }
     }
 
@@ -505,8 +559,27 @@ class HC3EventLogger {
             // Check ID filter (if no IDs selected, show all; otherwise only show selected IDs)
             const idMatch = this.filteredIds.size === 0 || this.filteredIds.has(eventId);
             
-            // Show row only if both filters pass
-            if (eventTypeMatch && idMatch) {
+            // Check value filter (if pattern exists, test against value content)
+            let valueMatch = true;
+            if (this.valueFilterPattern) {
+                const valueCell = row.querySelector('.event-value');
+                if (valueCell) {
+                    // Get the display text (formatted value)
+                    // Remove the tooltip content from the text
+                    const tooltipEl = valueCell.querySelector('.value-tooltip');
+                    let displayText = valueCell.textContent || '';
+                    if (tooltipEl) {
+                        // Remove tooltip text from display text
+                        displayText = displayText.replace(tooltipEl.textContent, '').trim();
+                    }
+                    
+                    // Test pattern against the display value only
+                    valueMatch = this.valueFilterPattern.test(displayText);
+                }
+            }
+            
+            // Show row only if all filters pass
+            if (eventTypeMatch && idMatch && valueMatch) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -566,7 +639,15 @@ class HC3EventLogger {
         const eventTypeMatch = this.selectedEventTypes.size === 0 || !this.selectedEventTypes.has(eventType);
         const idMatch = this.filteredIds.size === 0 || this.filteredIds.has(String(id));
         
-        if (!eventTypeMatch || !idMatch) {
+        // Check value filter
+        let valueMatch = true;
+        if (this.valueFilterPattern) {
+            // Test pattern against display value (formatted), or full value if no formatting
+            const testValue = shortValue || fullValue;
+            valueMatch = this.valueFilterPattern.test(testValue);
+        }
+        
+        if (!eventTypeMatch || !idMatch || !valueMatch) {
             row.style.display = 'none';
         }
         

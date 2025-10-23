@@ -44,7 +44,8 @@ dist-ssr/
 
 # Rust/Cargo
 target/
-Cargo.lock
+# Don't ignore Cargo.lock for applications - it ensures reproducible builds
+# Cargo.lock
 
 # Tauri
 src-tauri/target/

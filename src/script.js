@@ -530,8 +530,8 @@ class HC3EventLogger {
                         bVal = b.timestamp || b.created || 0;
                         break;
                     case 'id':
-                        aVal = a.id || a.deviceId || (a.data && (a.data.id || a.data.deviceId || a.data.deviceID)) || '';
-                        bVal = b.id || b.deviceId || (b.data && (b.data.id || b.data.deviceId || b.data.deviceID)) || '';
+                        aVal = a.id || a.deviceId || (a.data && (a.data.id || a.data.deviceId || a.data.deviceID || a.data.variableName)) || '';
+                        bVal = b.id || b.deviceId || (b.data && (b.data.id || b.data.deviceId || b.data.deviceID || b.data.variableName)) || '';
                         // Convert to string for comparison
                         aVal = String(aVal);
                         bVal = String(bVal);
@@ -667,7 +667,7 @@ class HC3EventLogger {
         // Try to get ID from multiple sources
         let id = event.id || event.deviceId;
         if (!id && event.data) {
-            id = event.data.id || event.data.deviceId || event.data.deviceID;
+            id = event.data.id || event.data.deviceId || event.data.deviceID || event.data.variableName;
         }
         id = id || '-';
         
@@ -823,6 +823,15 @@ class HC3EventLogger {
             case 'WeatherChangedEvent':
                 return this.formatWeatherChanged(data);
             
+            case 'GlobalVariableAddedEvent':
+                return this.formatGlobalVariableAdded(data);
+            
+            case 'GlobalVariableChangedEvent':
+                return this.formatGlobalVariableChanged(data);
+            
+            case 'GlobalVariableRemovedEvent':
+                return this.formatGlobalVariableRemoved(data);
+            
             // Add more event type formatters here as needed
             // case 'OtherEventType':
             //     return this.formatOtherEvent(data);
@@ -862,6 +871,21 @@ class HC3EventLogger {
         const newValue = data.newValue !== undefined ? data.newValue : '';
         
         return `${change}: ${newValue}`;
+    }
+    
+    formatGlobalVariableAdded(data) {
+        // For added variables, show value or newValue
+        return data.value !== undefined ? data.value : (data.newValue !== undefined ? data.newValue : '');
+    }
+    
+    formatGlobalVariableChanged(data) {
+        // For changed variables, show the new value
+        return data.newValue !== undefined ? data.newValue : '';
+    }
+    
+    formatGlobalVariableRemoved(data) {
+        // For removed variables, show nothing
+        return '';
     }
     
     formatDevicePropertyUpdate(data) {

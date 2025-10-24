@@ -5,6 +5,7 @@ struct HC3Config {
     host: Option<String>,
     user: Option<String>,
     password: Option<String>,
+    protocol: Option<String>,
 }
 
 #[tauri::command]
@@ -13,6 +14,7 @@ fn get_hc3_config() -> HC3Config {
         host: std::env::var("HC3_HOST").ok(),
         user: std::env::var("HC3_USER").ok(),
         password: std::env::var("HC3_PASSWORD").ok(),
+        protocol: std::env::var("HC3_PROTOCOL").ok(),
     }
 }
 

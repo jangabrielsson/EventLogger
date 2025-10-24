@@ -140,7 +140,8 @@ class HC3EventLogger {
         this.config = {
             ip: null,
             username: null,
-            password: null
+            password: null,
+            protocol: 'http' // Default to http
         };
         
         this.initializeElements();
@@ -542,7 +543,8 @@ class HC3EventLogger {
                 console.log('Config from environment:', {
                     host: config.host || 'NOT SET',
                     user: config.user || 'NOT SET',
-                    password: config.password ? 'SET' : 'NOT SET'
+                    password: config.password ? 'SET' : 'NOT SET',
+                    protocol: config.protocol || 'NOT SET (defaults to http)'
                 });
 
                 if (!config.host || !config.user || !config.password) {
@@ -553,16 +555,19 @@ class HC3EventLogger {
                 this.config.ip = config.host;
                 this.config.username = config.user;
                 this.config.password = config.password;
+                this.config.protocol = config.protocol || 'http'; // Default to http if not specified
                 
                 // Save to localStorage so other windows can access
                 localStorage.setItem('hc3Host', this.config.ip);
                 localStorage.setItem('hc3User', this.config.username);
                 localStorage.setItem('hc3Password', this.config.password);
+                localStorage.setItem('hc3Protocol', this.config.protocol);
                 
                 console.log('Config loaded:', {
                     ip: this.config.ip,
                     username: this.config.username,
-                    password: '***'
+                    password: '***',
+                    protocol: this.config.protocol
                 });
                 
                 // Auto-connect on startup
@@ -599,7 +604,8 @@ class HC3EventLogger {
                     Content:<br>
                     HC3_HOST=192.168.1.57<br>
                     HC3_USER=admin<br>
-                    HC3_PASSWORD=yourpassword
+                    HC3_PASSWORD=yourpassword<br>
+                    HC3_PROTOCOL=http
                 </div>
                 
                 <div style="background: white; border-left: 4px solid #ffc107; padding: 1rem; margin: 1rem 0; font-family: monospace; font-size: 0.9rem;">
@@ -607,8 +613,10 @@ class HC3EventLogger {
                     Variable names must be exactly:<br>
                     • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_HOST</code> (not HC3_URL)<br>
                     • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_USER</code> (not HC3_USERNAME)<br>
-                    • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_PASSWORD</code><br><br>
-                    HC3_HOST should be just the IP address (no http://)
+                    • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_PASSWORD</code><br>
+                    • <code style="background: #f5f5f5; padding: 2px 6px;">HC3_PROTOCOL</code> (optional, defaults to http)<br><br>
+                    HC3_HOST should be just the IP address (no http://)<br>
+                    HC3_PROTOCOL should be either 'http' or 'https'
                 </div>
                 
                 <p style="margin-top: 1rem; color: #856404;">
@@ -633,7 +641,7 @@ class HC3EventLogger {
     }
 
     async connect() {
-        const { ip, username, password } = this.config;
+        const { ip, username, password, protocol } = this.config;
         
         if (!ip || !username || !password) {
             this.updateStatus('', 'Missing configuration');
@@ -644,7 +652,7 @@ class HC3EventLogger {
             this.updateStatus('', 'Connecting...');
             
             // Test connection
-            const testUrl = `http://${ip}/api/refreshStates?last=0`;
+            const testUrl = `${protocol}://${ip}/api/refreshStates?last=0`;
             const credentials = btoa(`${username}:${password}`);
             
             const response = await httpGet(testUrl, {
@@ -659,7 +667,7 @@ class HC3EventLogger {
             // Connection successful, start event stream
             this.isConnected = true;
             this.updateStatus('connected', 'Connected');
-            this.startEventStream(ip, username, password);
+            this.startEventStream(ip, username, password, protocol);
 
         } catch (error) {
             console.error('Connection error:', error);
@@ -667,7 +675,7 @@ class HC3EventLogger {
         }
     }
 
-    startEventStream(ip, username, password) {
+    startEventStream(ip, username, password, protocol) {
         const credentials = btoa(`${username}:${password}`);
         let lastEventId = 0;
         
@@ -675,7 +683,7 @@ class HC3EventLogger {
             if (!this.isConnected) return;
 
             try {
-                const url = `http://${ip}/api/refreshStates?last=${lastEventId}&timeout=30`;
+                const url = `${protocol}://${ip}/api/refreshStates?last=${lastEventId}&timeout=30`;
                 const response = await httpGet(url, {
                     'Authorization': `Basic ${credentials}`,
                     'Content-Type': 'application/json'
@@ -1268,7 +1276,7 @@ class HC3EventLogger {
         }
         
         // Build the full URL
-        let url = `http://${this.config.ip}/api${apiPath}`;
+        let url = `${this.config.protocol}://${this.config.ip}/api${apiPath}`;
         
         // Replace <id> placeholder (unless it's WeatherChangedEvent which doesn't use ID)
         if (eventType !== 'WeatherChangedEvent') {

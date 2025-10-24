@@ -1,5 +1,100 @@
 // HC3 Event Logger - Simplified Table View
 
+// Event type to API endpoint mapping
+const EVENT_TYPE_TO_API = {
+    "AlarmPartitionArmedEvent": "/alarms/v1/partitions/<id>",
+    "AlarmPartitionBreachedEvent": "/alarms/v1/partitions/<id>",
+    "AlarmPartitionModifiedEvent": "/alarms/v1/partitions/<id>",
+    "HomeArmStateChangedEvent": "/alarms/v1/partitions/<id>",
+    "WeatherChangedEvent": "/weather",
+    "GlobalVariableChangedEvent": "/globalVariables/<id>",
+    "GlobalVariableAddedEvent": "/globalVariables/<id>",
+    "GlobalVariableRemovedEvent": "/globalVariables/<id>",
+    "DevicePropertyUpdatedEvent": "/devices/<id>",
+    "CentralSceneEvent": "/devices/<id>",
+    "SceneActivationEvent": "/devices/<id>",
+    "AccessControlEvent": "/devices/<id>",
+    "CustomEvent": "/customEvents/<id>",
+    "PluginChangedViewEvent": "/devices/<id>",
+    "DeviceRemovedEvent": "/devices/<id>",
+    "DeviceChangedRoomEvent": "/devices/<id>",
+    "DeviceCreatedEvent": "/devices/<id>",
+    "DeviceModifiedEvent": "/devices/<id>",
+    "PluginProcessCrashedEvent": "/devices/<id>",
+    "SceneStartedEvent": "/scenes/<id>",
+    "SceneFinishedEvent": "/scenes/<id>",
+    "SceneRunningInstancesEvent": "/scenes/<id>",
+    "SceneRemovedEvent": "/scenes/<id>",
+    "SceneModifiedEvent": "/scenes/<id>",
+    "SceneCreatedEvent": "/scenes/<id>",
+    "ActiveProfileChangedEvent": "/profiles/<id>",
+    "ClimateZoneChangedEvent": "/panels/climate/<id>",
+    "ClimateZoneSetpointChangedEvent": "/panels/climate/<id>",
+    "NotificationCreatedEvent": "/notificationCenter/<id>",
+    "NotificationRemovedEvent": "/notificationCenter/<id>",
+    "NotificationUpdatedEvent": "/notificationCenter/<id>",
+    "RoomCreatedEvent": "/rooms/<id>",
+    "RoomRemovedEvent": "/rooms/<id>",
+    "RoomModifiedEvent": "/rooms/<id>",
+    "SectionCreatedEvent": "/sections/<id>",
+    "SectionRemovedEvent": "/sections/<id>",
+    "SectionModifiedEvent": "/sections/<id>",
+    "QuickAppFilesChangedEvent": "/devices/<id>",
+    "DeviceActionRanEvent": "/devices/<id>"
+};
+
+// Priority order for JSON keys
+const KEY_PRIORITY_ORDER = [
+    "id", "name", "roomID", "view", "type", "baseType", 
+    "enabled", "visible", "isPlugin", "parentId", "viewXml", 
+    "hasUIView", "configXml", "interfaces", "properties"
+];
+
+// Custom JSON stringify with key ordering
+function stringifyWithOrderedKeys(obj, indent = 2) {
+    function sortKeys(obj) {
+        if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+            return obj;
+        }
+        
+        const sorted = {};
+        const keys = Object.keys(obj);
+        
+        // Separate priority keys and other keys
+        const priorityKeys = [];
+        const otherKeys = [];
+        
+        keys.forEach(key => {
+            const priorityIndex = KEY_PRIORITY_ORDER.indexOf(key);
+            if (priorityIndex !== -1) {
+                priorityKeys.push({ key, index: priorityIndex });
+            } else {
+                otherKeys.push(key);
+            }
+        });
+        
+        // Sort priority keys by their index
+        priorityKeys.sort((a, b) => a.index - b.index);
+        
+        // Sort other keys alphabetically
+        otherKeys.sort();
+        
+        // Build the sorted object
+        priorityKeys.forEach(({ key }) => {
+            sorted[key] = sortKeys(obj[key]);
+        });
+        
+        otherKeys.forEach(key => {
+            sorted[key] = sortKeys(obj[key]);
+        });
+        
+        return sorted;
+    }
+    
+    const sortedObj = sortKeys(obj);
+    return JSON.stringify(sortedObj, null, indent);
+}
+
 // Wrapper for HTTP requests that works in Tauri
 async function httpGet(url, headers = {}) {
     if (window.__TAURI__ && window.__TAURI__.http) {
@@ -64,6 +159,19 @@ class HC3EventLogger {
         this.selectAllEvents = document.getElementById('selectAllEvents');
         this.eventTypeFilters = document.getElementById('eventTypeFilters');
         this.valueFilterInput = document.getElementById('valueFilter');
+        this.idFilterButton = document.getElementById('idFilterButton');
+        this.idFilterMenu = document.getElementById('idFilterMenu');
+        this.idFilterList = document.getElementById('idFilterList');
+        this.selectAllIds = document.getElementById('selectAllIds');
+        
+        // Dialog elements
+        this.idInfoDialog = document.getElementById('idInfoDialog');
+        this.dialogOverlay = document.getElementById('dialogOverlay');
+        this.dialogTitle = document.getElementById('dialogTitle');
+        this.dialogJson = document.getElementById('dialogJson');
+        this.dialogClose = document.getElementById('dialogClose');
+        this.dialogCloseBtn = document.getElementById('dialogCloseBtn');
+        this.dialogCopyBtn = document.getElementById('dialogCopyBtn');
     }
 
     bindEvents() {
@@ -75,6 +183,29 @@ class HC3EventLogger {
         this.selectAllEvents.addEventListener('change', (e) => {
             this.toggleAllEventTypes(e.target.checked);
         });
+        
+        // Setup ID filter dropdown
+        this.idFilterButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleIdFilterMenu();
+        });
+        
+        this.selectAllIds.addEventListener('change', (e) => {
+            this.toggleAllIds(e.target.checked);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.idFilterMenu.contains(e.target) && !this.idFilterButton.contains(e.target)) {
+                this.closeIdFilterMenu();
+            }
+        });
+        
+        // Dialog event handlers
+        this.dialogClose.addEventListener('click', () => this.closeDialog());
+        this.dialogCloseBtn.addEventListener('click', () => this.closeDialog());
+        this.dialogOverlay.addEventListener('click', () => this.closeDialog());
+        this.dialogCopyBtn.addEventListener('click', () => this.copyDialogJson());
         
         // Setup value filter input with debouncing
         let filterTimeout;
@@ -118,10 +249,13 @@ class HC3EventLogger {
         // Clear ID filters
         this.filteredIds.clear();
         
-        // Update ID styling
-        document.querySelectorAll('.event-id.filtered').forEach(el => {
-            el.classList.remove('filtered');
+        // Check all ID filter checkboxes
+        const idCheckboxes = this.idFilterList.querySelectorAll('input[type="checkbox"]');
+        idCheckboxes.forEach(cb => {
+            cb.checked = true;
         });
+        this.selectAllIds.checked = true;
+        this.updateIdFilterButtonLabel();
         
         // Clear event type filters
         this.selectedEventTypes.clear();
@@ -140,6 +274,101 @@ class HC3EventLogger {
         
         // Re-apply filters (which now shows everything)
         this.filterDisplayedEvents();
+    }
+    
+    toggleIdFilterMenu() {
+        this.idFilterMenu.classList.toggle('show');
+        this.idFilterButton.classList.toggle('active');
+    }
+    
+    closeIdFilterMenu() {
+        this.idFilterMenu.classList.remove('show');
+        this.idFilterButton.classList.remove('active');
+    }
+    
+    toggleAllIds(selectAll) {
+        const checkboxes = this.idFilterList.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll;
+        });
+        
+        if (selectAll) {
+            this.filteredIds.clear();
+        } else {
+            // Add all IDs to filtered set (meaning hide all)
+            checkboxes.forEach(cb => {
+                this.filteredIds.add(cb.value);
+            });
+        }
+        
+        this.updateIdFilterButtonLabel();
+        this.filterDisplayedEvents();
+    }
+    
+    addIdToFilter(id) {
+        // Check if this ID already exists in the filter list
+        const existingCheckbox = this.idFilterList.querySelector(`input[value="${id}"]`);
+        if (existingCheckbox) {
+            return;
+        }
+        
+        // Create new checkbox for this ID
+        const label = document.createElement('label');
+        label.className = 'id-filter-item';
+        label.innerHTML = `
+            <input type="checkbox" value="${id}" checked>
+            <span>${id}</span>
+        `;
+        
+        const checkbox = label.querySelector('input');
+        checkbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                // Remove from filtered set (show this ID)
+                this.filteredIds.delete(id);
+            } else {
+                // Add to filtered set (hide this ID)
+                this.filteredIds.add(id);
+            }
+            this.updateSelectAllIdsState();
+            this.updateIdFilterButtonLabel();
+            this.filterDisplayedEvents();
+        });
+        
+        // Insert in sorted order
+        const items = Array.from(this.idFilterList.querySelectorAll('.id-filter-item'));
+        let inserted = false;
+        for (const item of items) {
+            const itemId = item.querySelector('input').value;
+            if (String(id).localeCompare(String(itemId)) < 0) {
+                this.idFilterList.insertBefore(label, item);
+                inserted = true;
+                break;
+            }
+        }
+        if (!inserted) {
+            this.idFilterList.appendChild(label);
+        }
+    }
+    
+    updateSelectAllIdsState() {
+        const allCheckboxes = this.idFilterList.querySelectorAll('input[type="checkbox"]');
+        const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+        this.selectAllIds.checked = allChecked;
+    }
+    
+    updateIdFilterButtonLabel() {
+        const allCheckboxes = this.idFilterList.querySelectorAll('input[type="checkbox"]');
+        const checkedCount = Array.from(allCheckboxes).filter(cb => cb.checked).length;
+        const totalCount = allCheckboxes.length;
+        
+        const label = this.idFilterButton.querySelector('.id-filter-label');
+        if (checkedCount === 0) {
+            label.textContent = 'No IDs';
+        } else if (checkedCount === totalCount) {
+            label.textContent = 'All IDs';
+        } else {
+            label.textContent = `${checkedCount} of ${totalCount}`;
+        }
     }
     
     updateValueFilter(filterText) {
@@ -494,6 +723,15 @@ class HC3EventLogger {
             this.selectedEventTypes.add(eventType);
         }
         
+        // Extract and track ID for filter dropdown
+        let id = event.id || event.deviceId;
+        if (!id && event.data) {
+            id = event.data.id || event.data.deviceId || event.data.deviceID || event.data.variableName;
+        }
+        if (id && id !== '-') {
+            this.addIdToFilter(String(id));
+        }
+        
         // Store event for sorting
         this.events.push(event);
         
@@ -626,8 +864,8 @@ class HC3EventLogger {
             // Check event type filter
             const eventTypeMatch = this.selectedEventTypes.size === 0 || !this.selectedEventTypes.has(eventType);
             
-            // Check ID filter (if no IDs selected, show all; otherwise only show selected IDs)
-            const idMatch = this.filteredIds.size === 0 || this.filteredIds.has(eventId);
+            // Check ID filter (if no IDs in filteredIds, show all; if ID is in filteredIds, hide it)
+            const idMatch = this.filteredIds.size === 0 || !this.filteredIds.has(eventId);
             
             // Check value filter (if pattern exists, test against value content)
             let valueMatch = true;
@@ -673,15 +911,13 @@ class HC3EventLogger {
         
         const { shortValue, fullValue } = this.formatValue(event);
         
-        const isFiltered = this.filteredIds.has(String(id));
-        
         // Don't escape shortValue if it contains HTML formatting (for colors/emojis)
         const displayValue = shortValue.includes('<span') ? shortValue : this.escapeHtml(shortValue);
         
         row.innerHTML = `
             <td class="col-event"><span class="event-type clickable" title="Click to copy full event JSON">${displayType}</span></td>
             <td class="col-time"><span class="event-time">${time}</span></td>
-            <td class="col-id"><span class="event-id ${isFiltered ? 'filtered' : ''}" data-id="${id}">${id}</span></td>
+            <td class="col-id"><span class="event-id" data-id="${id}">${id}</span></td>
             <td class="col-value"><span class="event-value">${displayValue}<div class="value-tooltip">${this.escapeHtml(fullValue)}</div></span></td>
         `;
         
@@ -698,16 +934,20 @@ class HC3EventLogger {
             this.copyEventToClipboard(event);
         });
         
-        // Add click handler to ID cell
+        // Add click handler to ID cell to show info dialog
         const idSpan = row.querySelector('.event-id');
-        idSpan.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleIdFilter(String(id));
-        });
+        if (id !== '-' && EVENT_TYPE_TO_API[eventType]) {
+            idSpan.classList.add('clickable');
+            idSpan.title = 'Click to view details';
+            idSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showIdInfoDialog(id, eventType);
+            });
+        }
         
         // Apply filter immediately for new events
         const eventTypeMatch = this.selectedEventTypes.size === 0 || !this.selectedEventTypes.has(eventType);
-        const idMatch = this.filteredIds.size === 0 || this.filteredIds.has(String(id));
+        const idMatch = this.filteredIds.size === 0 || !this.filteredIds.has(String(id));
         
         // Check value filter
         let valueMatch = true;
@@ -761,28 +1001,6 @@ class HC3EventLogger {
                 }
             });
         }
-    }
-    
-    toggleIdFilter(id) {
-        if (id === '-') return; // Don't filter on empty IDs
-        
-        if (this.filteredIds.has(id)) {
-            this.filteredIds.delete(id);
-        } else {
-            this.filteredIds.add(id);
-        }
-        
-        // Update all ID cells with this ID
-        document.querySelectorAll(`.event-id[data-id="${id}"]`).forEach(el => {
-            if (this.filteredIds.has(id)) {
-                el.classList.add('filtered');
-            } else {
-                el.classList.remove('filtered');
-            }
-        });
-        
-        // Re-apply filters
-        this.filterDisplayedEvents();
     }
     
     escapeHtml(text) {
@@ -1040,9 +1258,91 @@ class HC3EventLogger {
             notification.style.display = 'none';
         }, 2000);
     }
+    
+    async showIdInfoDialog(id, eventType) {
+        // Get API endpoint for this event type
+        const apiPath = EVENT_TYPE_TO_API[eventType];
+        if (!apiPath) {
+            console.warn('No API mapping for event type:', eventType);
+            return;
+        }
+        
+        // Build the full URL
+        let url = `http://${this.config.ip}/api${apiPath}`;
+        
+        // Replace <id> placeholder (unless it's WeatherChangedEvent which doesn't use ID)
+        if (eventType !== 'WeatherChangedEvent') {
+            url = url.replace('<id>', id);
+        }
+        
+        // Show dialog with loading state
+        this.dialogTitle.textContent = `${eventType} - ID: ${id}`;
+        this.dialogJson.textContent = 'Loading...';
+        this.idInfoDialog.classList.add('show');
+        
+        // Fetch the data
+        try {
+            const credentials = btoa(`${this.config.username}:${this.config.password}`);
+            const response = await httpGet(url, {
+                'Authorization': `Basic ${credentials}`,
+                'Content-Type': 'application/json'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            // Store the JSON for copying (with custom key ordering)
+            this.currentDialogJson = stringifyWithOrderedKeys(data, 2);
+            
+            // Display in dialog
+            this.dialogJson.textContent = this.currentDialogJson;
+            
+        } catch (error) {
+            console.error('Failed to fetch ID info:', error);
+            this.dialogJson.textContent = `Error: ${error.message}`;
+            this.currentDialogJson = null;
+        }
+    }
+    
+    closeDialog() {
+        this.idInfoDialog.classList.remove('show');
+        this.currentDialogJson = null;
+    }
+    
+    async copyDialogJson() {
+        if (!this.currentDialogJson) {
+            this.showCopyNotification('No JSON to copy', true);
+            return;
+        }
+        
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(this.currentDialogJson);
+                this.showCopyNotification('JSON copied to clipboard!');
+            } else {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = this.currentDialogJson;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                this.showCopyNotification('JSON copied to clipboard!');
+            }
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+            this.showCopyNotification('Failed to copy to clipboard', true);
+        }
+    }
 }
 
 // Initialize the logger when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.logger = new HC3EventLogger();
 });
+

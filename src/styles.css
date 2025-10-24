@@ -360,10 +360,6 @@ header h1 {
 .event-id {
     color: #1d1d1f;
     font-family: 'SF Mono', Monaco, Consolas, monospace;
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 3px;
-    transition: background 0.2s;
     display: inline-block;
     max-width: 100%;
     white-space: nowrap;
@@ -371,14 +367,136 @@ header h1 {
     text-overflow: ellipsis;
 }
 
-.event-id:hover {
-    background: #e5e5e7;
+.event-id.clickable {
+    cursor: pointer;
+    color: #667eea;
+    transition: all 0.2s;
 }
 
-.event-id.filtered {
+.event-id.clickable:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* ID Filter Dropdown */
+.id-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.id-filter-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.id-filter-button {
+    background: white;
+    border: 1px solid #d1d1d6;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #1d1d1f;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.id-filter-button:hover {
+    background: #f5f5f7;
+    border-color: #667eea;
+}
+
+.id-filter-button.active {
     background: #667eea;
     color: white;
+    border-color: #667eea;
+}
+
+.id-filter-label {
+    font-weight: 500;
+}
+
+.id-filter-arrow {
+    font-size: 0.6rem;
+    transition: transform 0.2s;
+}
+
+.id-filter-button.active .id-filter-arrow {
+    transform: rotate(180deg);
+}
+
+.id-filter-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: white;
+    border: 1px solid #d1d1d6;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    max-height: 300px;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+.id-filter-menu.show {
+    display: flex;
+    flex-direction: column;
+}
+
+.id-filter-controls {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e5e7;
+    background: #f9f9fb;
+}
+
+.id-filter-select-all {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
     font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+}
+
+.id-filter-select-all input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.id-filter-list {
+    overflow-y: auto;
+    max-height: 250px;
+    padding: 4px;
+}
+
+.id-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.id-filter-item:hover {
+    background: #f5f5f7;
+}
+
+.id-filter-item input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.id-filter-item span {
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
 }
 
 .event-value {
@@ -471,3 +589,119 @@ header h1 {
         transform: translateX(-50%) translateY(0);
     }
 }
+
+/* ID Info Dialog */
+.id-info-dialog {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+}
+
+.id-info-dialog.show {
+    display: block;
+}
+
+.dialog-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.dialog-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: dialogSlideIn 0.2s ease;
+}
+
+@keyframes dialogSlideIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -48%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e5e7;
+}
+
+.dialog-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin: 0;
+}
+
+.dialog-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #86868b;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.dialog-close:hover {
+    background: #f5f5f7;
+    color: #1d1d1f;
+}
+
+.dialog-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.dialog-json {
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 0.875rem;
+    background: #f9f9fb;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre;
+    color: #1d1d1f;
+    line-height: 1.5;
+}
+
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid #e5e5e7;
+}
+

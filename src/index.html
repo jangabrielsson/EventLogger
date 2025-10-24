@@ -57,8 +57,26 @@
                                 <div class="resize-handle"></div>
                             </th>
                             <th class="col-id resizable sortable" data-sort="id">
-                                ID
-                                <span class="sort-indicator">↕</span>
+                                <div class="id-header-content">
+                                    <div class="id-filter-dropdown">
+                                        <button class="id-filter-button" id="idFilterButton">
+                                            <span class="id-filter-label">All IDs</span>
+                                            <span class="id-filter-arrow">▼</span>
+                                        </button>
+                                        <div class="id-filter-menu" id="idFilterMenu">
+                                            <div class="id-filter-controls">
+                                                <label class="id-filter-select-all">
+                                                    <input type="checkbox" id="selectAllIds" checked>
+                                                    <span>Select All</span>
+                                                </label>
+                                            </div>
+                                            <div class="id-filter-list" id="idFilterList">
+                                                <!-- ID checkboxes will be added here dynamically -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="sort-indicator">↕</span>
+                                </div>
                                 <div class="resize-handle"></div>
                             </th>
                             <th class="col-value">Value</th>
@@ -71,6 +89,25 @@
         </div>
     </div>
 
+    <!-- ID Info Dialog -->
+    <div class="id-info-dialog" id="idInfoDialog">
+        <div class="dialog-overlay" id="dialogOverlay"></div>
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <h2 id="dialogTitle">Loading...</h2>
+                <button class="dialog-close" id="dialogClose">&times;</button>
+            </div>
+            <div class="dialog-body">
+                <pre id="dialogJson" class="dialog-json">Loading...</pre>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn btn-primary" id="dialogCopyBtn">Copy JSON</button>
+                <button class="btn btn-secondary" id="dialogCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
+

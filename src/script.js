@@ -817,6 +817,12 @@ class HC3EventLogger {
             case 'DeviceActionRanEvent':
                 return this.formatDeviceActionRan(data);
             
+            case 'PluginProcessCrashedEvent':
+                return this.formatPluginProcessCrashed(data);
+            
+            case 'WeatherChangedEvent':
+                return this.formatWeatherChanged(data);
+            
             // Add more event type formatters here as needed
             // case 'OtherEventType':
             //     return this.formatOtherEvent(data);
@@ -843,6 +849,19 @@ class HC3EventLogger {
         const argsStr = Array.isArray(args) ? args.join(', ') : String(args);
         
         return `${actionName}(${argsStr})`;
+    }
+    
+    formatPluginProcessCrashed(data) {
+        const error = data.error || 'Unknown error';
+        
+        return error;
+    }
+    
+    formatWeatherChanged(data) {
+        const change = data.change || '';
+        const newValue = data.newValue !== undefined ? data.newValue : '';
+        
+        return `${change}: ${newValue}`;
     }
     
     formatDevicePropertyUpdate(data) {

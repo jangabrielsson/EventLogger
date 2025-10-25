@@ -54,6 +54,8 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'HC3 Event Logger ${{ github.ref_name }}'
@@ -78,12 +80,17 @@ jobs:
             - Run the installer and follow the prompts
             - If Windows Defender SmartScreen appears, click "More info" and then "Run anyway"
             
+            ### Updates
+            - This release includes automatic update support
+            - Future updates can be installed directly from within the app
+            
             ### Notes
             - This is an automated build from the `${{ github.ref_name }}` tag
             - For issues, please report them on the [Issues page](https://github.com/${{ github.repository }}/issues)
           releaseDraft: false
           prerelease: false
           args: --target ${{ matrix.platform.target }}
+          updaterJsonPreferNsis: true
 
   create-release:
     needs: release

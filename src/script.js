@@ -1374,5 +1374,93 @@ class HC3EventLogger {
 // Initialize the logger when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.logger = new HC3EventLogger();
+    
+    // Setup updater if running in Tauri
+    if (window.__TAURI__) {
+        setupUpdater();
+    }
 });
 
+// Updater functionality
+async function setupUpdater() {
+    const { check } = window.__TAURI__.updater;
+    const { relaunch } = window.__TAURI__.process;
+    const { listen } = window.__TAURI__.event;
+    
+    // Listen for menu-triggered update checks
+    await listen('check-for-updates', async () => {
+        await checkForUpdates();
+    });
+    
+    // Optionally check for updates on startup (silent check)
+    // Uncomment if you want automatic update checks on app launch
+    // setTimeout(() => checkForUpdates(true), 3000);
+}
+
+async function checkForUpdates(silent = false) {
+    try {
+        const { check } = window.__TAURI__.updater;
+        const { relaunch } = window.__TAURI__.process;
+        const { ask } = window.__TAURI__.dialog;
+        
+        if (!silent) {
+            console.log('Checking for updates...');
+        }
+        
+        const update = await check();
+        
+        if (update?.available) {
+            const version = update.version;
+            const body = update.body || 'No release notes available';
+            
+            const message = `A new version (${version}) is available!\n\n${body}\n\nWould you like to download and install it now?`;
+            
+            const shouldUpdate = await ask(message, {
+                title: 'Update Available',
+                kind: 'info',
+                okLabel: 'Update',
+                cancelLabel: 'Later'
+            });
+            
+            if (shouldUpdate) {
+                console.log('Downloading and installing update...');
+                
+                // Download and install the update
+                await update.downloadAndInstall();
+                
+                // Ask to restart
+                const shouldRelaunch = await ask(
+                    'Update installed successfully. Restart the application now?',
+                    {
+                        title: 'Update Complete',
+                        kind: 'info',
+                        okLabel: 'Restart Now',
+                        cancelLabel: 'Later'
+                    }
+                );
+                
+                if (shouldRelaunch) {
+                    await relaunch();
+                }
+            }
+        } else {
+            if (!silent) {
+                // Only show "up to date" message if user manually checked
+                const { message } = window.__TAURI__.dialog;
+                await message('You are running the latest version!', {
+                    title: 'No Updates Available',
+                    kind: 'info'
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Update check failed:', error);
+        if (!silent) {
+            const { message } = window.__TAURI__.dialog;
+            await message(`Failed to check for updates: ${error}`, {
+                title: 'Update Error',
+                kind: 'error'
+            });
+        }
+    }
+}

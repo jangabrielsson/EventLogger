@@ -63,3 +63,5 @@ src-tauri/gen/
 # Temporary files
 *.tmp
 *.temp
+
+UPDATER_FINAL_STEPS.md

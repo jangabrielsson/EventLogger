@@ -1,4 +1,4 @@
-use tauri::{Manager, menu::{Menu, MenuItem, Submenu, PredefinedMenuItem}};
+use tauri::{Manager, Emitter, menu::{Menu, MenuItem, Submenu, PredefinedMenuItem}};
 
 #[derive(serde::Serialize)]
 struct HC3Config {
@@ -58,6 +58,7 @@ pub fn run() {
   
   tauri::Builder::default()
     .plugin(tauri_plugin_http::init())
+    .plugin(tauri_plugin_updater::Builder::new().build())
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -69,6 +70,7 @@ pub fn run() {
 
       // Create Window menu with HC3 System Info item
       let open_hc3_info = MenuItem::with_id(app, "open_hc3_info", "HC3 System Info", true, None::<&str>)?;
+      let check_for_updates = MenuItem::with_id(app, "check_for_updates", "Check for Updates...", true, None::<&str>)?;
       let window_menu = Submenu::with_items(
         app,
         "Window",
@@ -91,6 +93,7 @@ pub fn run() {
             true,
             &[
               &PredefinedMenuItem::about(app, None, None)?,
+              &check_for_updates,
               &PredefinedMenuItem::separator(app)?,
               &PredefinedMenuItem::services(app, None)?,
               &PredefinedMenuItem::separator(app)?,
@@ -111,6 +114,9 @@ pub fn run() {
       app.on_menu_event(move |app, event| {
         if event.id() == "open_hc3_info" {
           open_hc3_info_window(app.clone());
+        } else if event.id() == "check_for_updates" {
+          // Emit event to frontend to trigger update check
+          let _ = app.emit("check-for-updates", ());
         }
       });
 

@@ -50,12 +50,21 @@ jobs:
         run: |
           rustup target add ${{ matrix.platform.target }}
 
-      - name: Build Tauri app
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Build and Sign
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          cd src-tauri
+          cargo tauri build --target ${{ matrix.platform.target }}
+
+      - name: Upload to Release
         uses: tauri-apps/tauri-action@dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'HC3 Event Logger ${{ github.ref_name }}'
@@ -89,4 +98,3 @@ jobs:
             - For issues, please report them on the [Issues page](https://github.com/${{ github.repository }}/issues)
           releaseDraft: false
           prerelease: false
-          args: --target ${{ matrix.platform.target }}

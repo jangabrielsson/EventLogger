@@ -505,32 +505,7 @@ header h1 {
     white-space: nowrap;
     overflow: visible;
     text-overflow: ellipsis;
-    cursor: help;
     position: static;
-    display: block;
-}
-
-.value-tooltip {
-    display: none;
-    position: absolute;
-    left: 0;
-    top: calc(100% + 5px);
-    background: #1d1d1f;
-    color: white;
-    padding: 0.75rem;
-    border-radius: 6px;
-    white-space: pre;
-    z-index: 10000;
-    max-width: 600px;
-    max-height: 400px;
-    overflow: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    font-size: 0.75rem;
-    line-height: 1.4;
-    pointer-events: none;
-}
-
-.event-value:hover .value-tooltip {
     display: block;
 }
 

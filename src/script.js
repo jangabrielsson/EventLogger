@@ -926,7 +926,7 @@ class HC3EventLogger {
             <td class="col-event"><span class="event-type clickable" title="Click to copy full event JSON">${displayType}</span></td>
             <td class="col-time"><span class="event-time">${time}</span></td>
             <td class="col-id"><span class="event-id" data-id="${id}">${id}</span></td>
-            <td class="col-value"><span class="event-value">${displayValue}<div class="value-tooltip">${this.escapeHtml(fullValue)}</div></span></td>
+            <td class="col-value"><span class="event-value clickable" title="Click to view event JSON">${displayValue}</span></td>
         `;
         
         row.dataset.eventType = eventType;
@@ -952,6 +952,13 @@ class HC3EventLogger {
                 this.showIdInfoDialog(id, eventType);
             });
         }
+        
+        // Add click handler to Value cell to show event JSON dialog
+        const valueSpan = row.querySelector('.event-value');
+        valueSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showEventJsonDialog(event);
+        });
         
         // Apply filter immediately for new events
         const eventTypeMatch = this.selectedEventTypes.size === 0 || !this.selectedEventTypes.has(eventType);
@@ -1313,6 +1320,21 @@ class HC3EventLogger {
             this.dialogJson.textContent = `Error: ${error.message}`;
             this.currentDialogJson = null;
         }
+    }
+    
+    showEventJsonDialog(event) {
+        // Show dialog with event JSON
+        const eventType = event.type || 'Unknown';
+        const id = event.id || event.deviceId || (event.data && (event.data.id || event.data.deviceId)) || '-';
+        
+        this.dialogTitle.textContent = `Event JSON - ${eventType}${id !== '-' ? ` (ID: ${id})` : ''}`;
+        
+        // Store the JSON for copying (with custom key ordering)
+        this.currentDialogJson = stringifyWithOrderedKeys(event, 2);
+        
+        // Display in dialog
+        this.dialogJson.textContent = this.currentDialogJson;
+        this.idInfoDialog.classList.add('show');
     }
     
     closeDialog() {

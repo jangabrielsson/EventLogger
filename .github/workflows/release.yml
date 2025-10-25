@@ -89,5 +89,4 @@ jobs:
             - For issues, please report them on the [Issues page](https://github.com/${{ github.repository }}/issues)
           releaseDraft: false
           prerelease: false
-          includeUpdaterJson: true
           args: --target ${{ matrix.platform.target }}

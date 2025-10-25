@@ -185,6 +185,14 @@ class HC3EventLogger {
             this.toggleAllEventTypes(e.target.checked);
         });
         
+        // Make connection status clickable to reconnect
+        const connectionStatus = document.getElementById('connectionStatus');
+        if (connectionStatus) {
+            connectionStatus.style.cursor = 'pointer';
+            connectionStatus.title = 'Click to reconnect';
+            connectionStatus.addEventListener('click', () => this.reconnect());
+        }
+        
         // Setup ID filter dropdown
         this.idFilterButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -638,6 +646,16 @@ class HC3EventLogger {
     updateStatus(indicatorClass, text) {
         this.statusIndicator.className = `status-indicator ${indicatorClass}`;
         this.statusText.textContent = text;
+    }
+
+    async reconnect() {
+        console.log('Reconnecting...');
+        
+        // Stop current connection if any
+        this.isConnected = false;
+        
+        // Re-load configuration from environment
+        await this.loadConfig();
     }
 
     async connect() {

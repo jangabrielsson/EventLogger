@@ -41,6 +41,19 @@ header h1 {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    user-select: none;
+}
+
+.connection-status:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.connection-status:active {
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .status-indicator {

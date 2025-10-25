@@ -111,7 +111,7 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: --target ${{ matrix.platform.target }}
-          updaterJsonPreferNsis: true
+          includeUpdaterJson: true
 
   finalize-release:
     needs: release

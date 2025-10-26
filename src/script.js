@@ -1491,16 +1491,23 @@ async function checkForUpdates(silent = false) {
             
             const message = `A new version (${version}) is available!\n\n${body}\n\nWould you like to download and install it now?`;
             
-            // Use dialog API if available, otherwise use confirm
+            // Try to use dialog API, fall back to auto-install if not allowed
             let shouldUpdate;
             if (hasDialog) {
-                const { ask } = window.__TAURI__.dialog;
-                shouldUpdate = await ask(message, {
-                    title: 'Update Available',
-                    kind: 'info',
-                    okLabel: 'Update',
-                    cancelLabel: 'Later'
-                });
+                try {
+                    const { ask } = window.__TAURI__.dialog;
+                    shouldUpdate = await ask(message, {
+                        title: 'Update Available',
+                        kind: 'info',
+                        okLabel: 'Update',
+                        cancelLabel: 'Later'
+                    });
+                } catch (error) {
+                    console.log('⚠️ Dialog API call failed (likely ACL restriction):', error.message);
+                    console.log('Auto-installing update...');
+                    console.log(message);
+                    shouldUpdate = true;
+                }
             } else {
                 // Browser dialogs (confirm/alert) don't work in Tauri WebView
                 // Auto-install if dialog plugin not available
@@ -1520,16 +1527,22 @@ async function checkForUpdates(silent = false) {
                     const { relaunch } = window.__TAURI__.process;
                     let shouldRelaunch;
                     if (hasDialog) {
-                        const { ask } = window.__TAURI__.dialog;
-                        shouldRelaunch = await ask(
-                            'Update installed successfully. Restart the application now?',
-                            {
-                                title: 'Update Complete',
-                                kind: 'info',
-                                okLabel: 'Restart Now',
-                                cancelLabel: 'Later'
-                            }
-                        );
+                        try {
+                            const { ask } = window.__TAURI__.dialog;
+                            shouldRelaunch = await ask(
+                                'Update installed successfully. Restart the application now?',
+                                {
+                                    title: 'Update Complete',
+                                    kind: 'info',
+                                    okLabel: 'Restart Now',
+                                    cancelLabel: 'Later'
+                                }
+                            );
+                        } catch (error) {
+                            console.log('⚠️ Dialog API call failed (likely ACL restriction):', error.message);
+                            console.log('Auto-restarting application...');
+                            shouldRelaunch = true;
+                        }
                     } else {
                         // Auto-restart if dialog not available
                         console.log('⚠️ Dialog API not available - auto-restarting application');
@@ -1542,11 +1555,16 @@ async function checkForUpdates(silent = false) {
                 } else {
                     // Manual restart required
                     if (hasDialog) {
-                        const { message } = window.__TAURI__.dialog;
-                        await message('Update installed successfully. Please restart the application manually.', {
-                            title: 'Update Complete',
-                            kind: 'info'
-                        });
+                        try {
+                            const { message } = window.__TAURI__.dialog;
+                            await message('Update installed successfully. Please restart the application manually.', {
+                                title: 'Update Complete',
+                                kind: 'info'
+                            });
+                        } catch (error) {
+                            console.log('⚠️ Dialog API call failed:', error.message);
+                            console.log('Update installed successfully. Please restart the application manually.');
+                        }
                     } else {
                         alert('Update installed successfully. Please restart the application manually.');
                     }

@@ -1401,21 +1401,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Updater functionality
 async function setupUpdater() {
+    console.log('Setting up updater...');
     const { check } = window.__TAURI__.updater;
     const { relaunch } = window.__TAURI__.process;
     const { listen } = window.__TAURI__.event;
     
     // Listen for menu-triggered update checks
     await listen('check-for-updates', async () => {
+        console.log('check-for-updates event received');
         await checkForUpdates();
     });
     
+    console.log('Updater setup complete');
     // Optionally check for updates on startup (silent check)
     // Uncomment if you want automatic update checks on app launch
     // setTimeout(() => checkForUpdates(true), 3000);
 }
 
 async function checkForUpdates(silent = false) {
+    console.log('checkForUpdates called, silent:', silent);
     try {
         const { check } = window.__TAURI__.updater;
         const { relaunch } = window.__TAURI__.process;
@@ -1425,7 +1429,9 @@ async function checkForUpdates(silent = false) {
             console.log('Checking for updates...');
         }
         
+        console.log('About to call updater.check()...');
         const update = await check();
+        console.log('Update check result:', update);
         
         if (update?.available) {
             const version = update.version;

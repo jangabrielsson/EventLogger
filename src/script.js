@@ -1487,9 +1487,20 @@ async function checkForUpdates(silent = false) {
         
         if (update?.available) {
             const version = update.version;
-            const body = update.body || 'No release notes available';
+            let body = update.body || 'No release notes available';
             
-            const message = `A new version (${version}) is available!\n\n${body}\n\nWould you like to download and install it now?`;
+            // Remove manual installation instructions from release notes
+            // (they're not relevant for auto-update)
+            body = body.replace(/## Installation[\s\S]*$/i, '').trim();
+            body = body.replace(/### Manual Installation[\s\S]*$/i, '').trim();
+            body = body.replace(/Download the.*?\.(dmg|msi|exe).*$/gim, '').trim();
+            
+            // If body is empty after filtering, use generic message
+            if (!body || body === '## What\'s Changed') {
+                body = 'Bug fixes and improvements';
+            }
+            
+            const message = `A new version (${version}) is available!\n\n${body}\n\nThe update will be downloaded and installed automatically.`;
             
             // Try to use dialog API, fall back to auto-install if not allowed
             let shouldUpdate;

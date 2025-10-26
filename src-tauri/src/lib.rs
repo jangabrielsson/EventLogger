@@ -140,14 +140,8 @@ pub fn run() {
           // Emit event to frontend to trigger update check
           let _ = app.emit("check-for-updates", ());
         } else if event.id() == "toggle_devtools" {
-          // Toggle devtools for the main window
-          if let Some(window) = app.get_webview_window("main") {
-            if window.is_devtools_open() {
-              let _ = window.close_devtools();
-            } else {
-              let _ = window.open_devtools();
-            }
-          }
+          // Emit event to frontend to trigger devtools toggle
+          let _ = app.emit("toggle-devtools", ());
         }
       });
 

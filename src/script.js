@@ -1420,6 +1420,12 @@ async function setupUpdater() {
             await checkForUpdates();
         });
         
+        // Listen for menu-triggered devtools toggle
+        await listen('toggle-devtools', async () => {
+            console.log('toggle-devtools event received');
+            await toggleDevtools();
+        });
+        
         console.log('Updater setup complete');
         // Optionally check for updates on startup (silent check)
         // Uncomment if you want automatic update checks on app launch
@@ -1513,3 +1519,16 @@ async function checkForUpdates(silent = false) {
         }
     }
 }
+
+// Toggle developer tools
+async function toggleDevtools() {
+    try {
+        // Use Tauri's built-in devtools toggle command
+        const { invoke } = window.__TAURI__.core;
+        await invoke('plugin:webview|internal_toggle_devtools');
+        console.log('DevTools toggled');
+    } catch (error) {
+        console.error('Failed to toggle devtools:', error);
+    }
+}
+

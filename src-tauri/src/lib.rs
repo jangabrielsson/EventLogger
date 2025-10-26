@@ -91,12 +91,14 @@ pub fn run() {
       // Create Window menu with HC3 System Info item
       let open_hc3_info = MenuItem::with_id(app, "open_hc3_info", "HC3 System Info", true, None::<&str>)?;
       let check_for_updates = MenuItem::with_id(app, "check_for_updates", "Check for Updates...", true, None::<&str>)?;
+      let toggle_devtools = MenuItem::with_id(app, "toggle_devtools", "Toggle Developer Tools", true, Some("CmdOrCtrl+Shift+I"))?;
       let window_menu = Submenu::with_items(
         app,
         "Window",
         true,
         &[
           &open_hc3_info,
+          &toggle_devtools,
           &PredefinedMenuItem::separator(app)?,
           &PredefinedMenuItem::minimize(app, None)?,
           &PredefinedMenuItem::close_window(app, None)?,
@@ -137,6 +139,15 @@ pub fn run() {
         } else if event.id() == "check_for_updates" {
           // Emit event to frontend to trigger update check
           let _ = app.emit("check-for-updates", ());
+        } else if event.id() == "toggle_devtools" {
+          // Toggle devtools for the main window
+          if let Some(window) = app.get_webview_window("main") {
+            if window.is_devtools_open() {
+              let _ = window.close_devtools();
+            } else {
+              let _ = window.open_devtools();
+            }
+          }
         }
       });
 

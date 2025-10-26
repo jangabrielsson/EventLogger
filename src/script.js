@@ -1410,8 +1410,12 @@ async function setupUpdater() {
     }
     
     try {
-        const { check } = window.__TAURI__.updater;
-        const { relaunch } = window.__TAURI__.process;
+        // Check for event listener API
+        if (!window.__TAURI__.event || !window.__TAURI__.event.listen) {
+            console.warn('Tauri event API not available');
+            return;
+        }
+        
         const { listen } = window.__TAURI__.event;
         
         // Listen for menu-triggered update checks
@@ -1441,13 +1445,19 @@ async function checkForUpdates(silent = false) {
     // Check if Tauri updater API is available
     if (!window.__TAURI__ || !window.__TAURI__.updater) {
         console.error('Tauri updater API not available');
-        if (!silent) {
+        if (!silent && window.__TAURI__ && window.__TAURI__.dialog) {
             const { message } = window.__TAURI__.dialog;
             await message('Update functionality is not available in this build.', {
                 title: 'Updater Not Available',
                 kind: 'error'
             });
         }
+        return;
+    }
+    
+    // Check if process API is available for relaunch
+    if (!window.__TAURI__.process || !window.__TAURI__.process.relaunch) {
+        console.error('Tauri process API not available');
         return;
     }
     

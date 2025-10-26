@@ -140,8 +140,17 @@ pub fn run() {
           // Emit event to frontend to trigger update check
           let _ = app.emit("check-for-updates", ());
         } else if event.id() == "toggle_devtools" {
-          // Emit event to frontend to trigger devtools toggle
-          let _ = app.emit("toggle-devtools", ());
+          // Toggle devtools directly in Rust
+          if let Some(webview) = app.get_webview_window("main") {
+            #[cfg(any(debug_assertions, feature = "devtools"))]
+            {
+              if webview.is_devtools_open() {
+                webview.close_devtools();
+              } else {
+                webview.open_devtools();
+              }
+            }
+          }
         }
       });
 

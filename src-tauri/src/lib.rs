@@ -10,11 +10,22 @@ struct HC3Config {
 
 #[tauri::command]
 fn get_hc3_config() -> HC3Config {
+    let host = std::env::var("HC3_HOST").ok();
+    let user = std::env::var("HC3_USER").ok();
+    let password = std::env::var("HC3_PASSWORD").ok();
+    let protocol = std::env::var("HC3_PROTOCOL").ok();
+    
+    println!("Reading HC3 config:");
+    println!("  HC3_HOST: {}", if host.is_some() { "set" } else { "NOT SET" });
+    println!("  HC3_USER: {}", if user.is_some() { "set" } else { "NOT SET" });
+    println!("  HC3_PASSWORD: {}", if password.is_some() { "set" } else { "NOT SET" });
+    println!("  HC3_PROTOCOL: {}", if protocol.is_some() { "set" } else { "NOT SET" });
+    
     HC3Config {
-        host: std::env::var("HC3_HOST").ok(),
-        user: std::env::var("HC3_USER").ok(),
-        password: std::env::var("HC3_PASSWORD").ok(),
-        protocol: std::env::var("HC3_PROTOCOL").ok(),
+        host,
+        user,
+        password,
+        protocol,
     }
 }
 
@@ -46,14 +57,23 @@ pub fn run() {
   // 2. Home directory (~/.env on Unix, %USERPROFILE%\.env on Windows)
   
   // Try current directory first
-  let _ = dotenvy::dotenv();
+  match dotenvy::dotenv() {
+    Ok(path) => println!("Loaded .env from: {:?}", path),
+    Err(e) => println!("No .env in current directory: {}", e),
+  }
   
   // Try home directory (cross-platform)
   // On Unix: $HOME, On Windows: %USERPROFILE%
   let home_var = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
   if let Ok(home_dir) = std::env::var(home_var) {
     let home_env = std::path::PathBuf::from(home_dir).join(".env");
-    let _ = dotenvy::from_path(home_env);
+    println!("Trying to load .env from home: {:?}", home_env);
+    match dotenvy::from_path(&home_env) {
+      Ok(_) => println!("Successfully loaded .env from home directory"),
+      Err(e) => println!("Failed to load .env from home directory: {}", e),
+    }
+  } else {
+    println!("Could not determine home directory (${} not set)", home_var);
   }
   
   tauri::Builder::default()

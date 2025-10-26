@@ -1502,7 +1502,11 @@ async function checkForUpdates(silent = false) {
                     cancelLabel: 'Later'
                 });
             } else {
-                shouldUpdate = confirm(message);
+                // Browser dialogs (confirm/alert) don't work in Tauri WebView
+                // Auto-install if dialog plugin not available
+                console.log('⚠️ Dialog API not available - auto-installing update');
+                console.log(message);
+                shouldUpdate = true;
             }
             
             if (shouldUpdate) {
@@ -1527,7 +1531,9 @@ async function checkForUpdates(silent = false) {
                             }
                         );
                     } else {
-                        shouldRelaunch = confirm('Update installed successfully. Restart the application now?');
+                        // Auto-restart if dialog not available
+                        console.log('⚠️ Dialog API not available - auto-restarting application');
+                        shouldRelaunch = true;
                     }
                     
                     if (shouldRelaunch) {

@@ -1455,16 +1455,15 @@ async function checkForUpdates(silent = false) {
         return;
     }
     
-    // Check if process API is available for relaunch
-    if (!window.__TAURI__.process || !window.__TAURI__.process.relaunch) {
-        console.error('Tauri process API not available');
-        return;
-    }
-    
     try {
         const { check } = window.__TAURI__.updater;
-        const { relaunch } = window.__TAURI__.process;
         const { ask } = window.__TAURI__.dialog;
+        
+        // Check if process API is available for auto-relaunch
+        const hasRelaunch = window.__TAURI__.process && window.__TAURI__.process.relaunch;
+        if (!hasRelaunch) {
+            console.warn('Tauri process API not available - auto-relaunch will not be available');
+        }
         
         if (!silent) {
             console.log('Checking for updates...');
@@ -1493,19 +1492,29 @@ async function checkForUpdates(silent = false) {
                 // Download and install the update
                 await update.downloadAndInstall();
                 
-                // Ask to restart
-                const shouldRelaunch = await ask(
-                    'Update installed successfully. Restart the application now?',
-                    {
-                        title: 'Update Complete',
-                        kind: 'info',
-                        okLabel: 'Restart Now',
-                        cancelLabel: 'Later'
+                // Ask to restart if relaunch is available
+                if (hasRelaunch) {
+                    const { relaunch } = window.__TAURI__.process;
+                    const shouldRelaunch = await ask(
+                        'Update installed successfully. Restart the application now?',
+                        {
+                            title: 'Update Complete',
+                            kind: 'info',
+                            okLabel: 'Restart Now',
+                            cancelLabel: 'Later'
+                        }
+                    );
+                    
+                    if (shouldRelaunch) {
+                        await relaunch();
                     }
-                );
-                
-                if (shouldRelaunch) {
-                    await relaunch();
+                } else {
+                    // Manual restart required
+                    const { message } = window.__TAURI__.dialog;
+                    await message('Update installed successfully. Please restart the application manually.', {
+                        title: 'Update Complete',
+                        kind: 'info'
+                    });
                 }
             }
         } else {

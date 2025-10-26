@@ -130,6 +130,7 @@ class HC3EventLogger {
         this.eventTypes = new Set();
         this.selectedEventTypes = new Set();
         this.filteredIds = new Set(); // IDs that are selected for filtering
+        this.pinnedIds = new Set(); // IDs that were manually added by user
         this.sortColumn = 'time';
         this.sortDirection = 'desc'; // Start with newest first
         this.events = []; // Store all events for sorting
@@ -164,6 +165,8 @@ class HC3EventLogger {
         this.idFilterMenu = document.getElementById('idFilterMenu');
         this.idFilterList = document.getElementById('idFilterList');
         this.selectAllIds = document.getElementById('selectAllIds');
+        this.idFilterInput = document.getElementById('idFilterInput');
+        this.addIdsButton = document.getElementById('addIdsButton');
         
         // Dialog elements
         this.idInfoDialog = document.getElementById('idInfoDialog');
@@ -201,6 +204,18 @@ class HC3EventLogger {
         
         this.selectAllIds.addEventListener('change', (e) => {
             this.toggleAllIds(e.target.checked);
+        });
+        
+        // Add IDs button handler
+        this.addIdsButton.addEventListener('click', () => {
+            this.parseAndAddIds();
+        });
+        
+        // Also support Enter key in input
+        this.idFilterInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.parseAndAddIds();
+            }
         });
         
         // Close dropdown when clicking outside
@@ -314,7 +329,32 @@ class HC3EventLogger {
         this.filterDisplayedEvents();
     }
     
-    addIdToFilter(id) {
+    parseAndAddIds() {
+        const input = this.idFilterInput.value.trim();
+        if (!input) {
+            return;
+        }
+        
+        // Parse comma-separated IDs
+        const ids = input.split(',')
+            .map(id => id.trim())
+            .filter(id => id !== '' && !isNaN(id)); // Only numeric IDs
+        
+        if (ids.length === 0) {
+            return;
+        }
+        
+        // Add each ID as pinned
+        ids.forEach(id => {
+            this.pinnedIds.add(id);
+            this.addIdToFilter(id, true); // true = pinned
+        });
+        
+        // Clear the input
+        this.idFilterInput.value = '';
+    }
+    
+    addIdToFilter(id, isPinned = false) {
         // Check if this ID already exists in the filter list
         const existingCheckbox = this.idFilterList.querySelector(`input[value="${id}"]`);
         if (existingCheckbox) {
@@ -323,13 +363,20 @@ class HC3EventLogger {
         
         // Create new checkbox for this ID
         const label = document.createElement('label');
-        label.className = 'id-filter-item';
+        label.className = isPinned ? 'id-filter-item pinned' : 'id-filter-item';
+        
+        const pinIcon = isPinned ? '<span class="pin-icon">📌</span>' : '';
         label.innerHTML = `
             <input type="checkbox" value="${id}" checked>
+            ${pinIcon}
             <span>${id}</span>
         `;
         
         const checkbox = label.querySelector('input');
+        
+        // Both pinned and discovered IDs start as checked (visible)
+        // So neither are added to filteredIds initially
+        
         checkbox.addEventListener('change', (e) => {
             if (e.target.checked) {
                 // Remove from filtered set (show this ID)
@@ -357,6 +404,11 @@ class HC3EventLogger {
         if (!inserted) {
             this.idFilterList.appendChild(label);
         }
+        
+        // Update UI states
+        this.updateSelectAllIdsState();
+        this.updateIdFilterButtonLabel();
+        this.filterDisplayedEvents();
     }
     
     updateSelectAllIdsState() {
@@ -755,7 +807,9 @@ class HC3EventLogger {
             id = event.data.id || event.data.deviceId || event.data.deviceID || event.data.variableName;
         }
         if (id && id !== '-') {
-            this.addIdToFilter(String(id));
+            const idStr = String(id);
+            const isPinned = this.pinnedIds.has(idStr);
+            this.addIdToFilter(idStr, isPinned);
         }
         
         // Store event for sorting

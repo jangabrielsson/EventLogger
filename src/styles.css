@@ -462,6 +462,56 @@ header h1 {
     flex-direction: column;
 }
 
+.id-filter-input-section {
+    padding: 12px;
+    border-bottom: 1px solid #e5e5e7;
+    background: #f9f9fb;
+}
+
+.id-filter-input-section label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.id-filter-input-section input[type="text"] {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d1d6;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    margin-bottom: 6px;
+}
+
+.id-filter-input-section input[type="text"]:focus {
+    outline: none;
+    border-color: #007AFF;
+}
+
+.add-ids-btn {
+    width: 100%;
+    padding: 6px 12px;
+    background: #007AFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.add-ids-btn:hover {
+    background: #0051D5;
+}
+
+.add-ids-btn:active {
+    background: #004FC4;
+}
+
 .id-filter-controls {
     padding: 8px 12px;
     border-bottom: 1px solid #e5e5e7;
@@ -510,6 +560,20 @@ header h1 {
 
 .id-filter-item span {
     font-family: 'SF Mono', Monaco, Consolas, monospace;
+}
+
+.id-filter-item.pinned {
+    background: #e3f2fd;
+}
+
+.id-filter-item.pinned:hover {
+    background: #d1e7fd;
+}
+
+.id-filter-item .pin-icon {
+    color: #007AFF;
+    font-size: 0.7rem;
+    margin-left: auto;
 }
 
 .event-value {

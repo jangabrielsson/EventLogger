@@ -13,6 +13,11 @@
     "core:window:allow-set-size",
     "core:webview:allow-create-webview-window",
     "core:webview:allow-internal-toggle-devtools",
+    "updater:default",
+    "updater:allow-check",
+    "updater:allow-download",
+    "updater:allow-download-and-install",
+    "updater:allow-install",
     {
       "identifier": "http:default",
       "allow": [

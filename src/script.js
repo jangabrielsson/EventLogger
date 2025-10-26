@@ -1454,6 +1454,17 @@ async function checkForUpdates(silent = false) {
         return;
     }
     
+    // Check dialog and process APIs availability
+    const hasDialog = window.__TAURI__.dialog && window.__TAURI__.dialog.ask;
+    const hasRelaunch = window.__TAURI__.process && window.__TAURI__.process.relaunch;
+    
+    if (!hasDialog) {
+        console.warn('Dialog API not available, will use browser alert/confirm as fallback');
+    }
+    if (!hasRelaunch) {
+        console.warn('Tauri process API not available - auto-relaunch will not be available');
+    }
+    
     try {
         // Verify the check function exists
         if (!window.__TAURI__.updater.check) {
@@ -1465,18 +1476,6 @@ async function checkForUpdates(silent = false) {
         }
         
         const check = window.__TAURI__.updater.check;
-        
-        // Try to get dialog functions - use alert as fallback
-        const hasDialog = window.__TAURI__.dialog && window.__TAURI__.dialog.ask;
-        if (!hasDialog) {
-            console.warn('Dialog API not available, will use browser alert/confirm as fallback');
-        }
-        
-        // Check if process API is available for auto-relaunch
-        const hasRelaunch = window.__TAURI__.process && window.__TAURI__.process.relaunch;
-        if (!hasRelaunch) {
-            console.warn('Tauri process API not available - auto-relaunch will not be available');
-        }
         
         if (!silent) {
             console.log('Checking for updates...');

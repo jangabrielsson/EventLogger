@@ -21,7 +21,7 @@
   "app": {
     "windows": [
       {
-        "title": "HC3 Event Logger v0.2.15",
+        "title": "HC3 Event Logger v0.2.24",
         "width": 1200,
         "height": 800,
         "resizable": true,

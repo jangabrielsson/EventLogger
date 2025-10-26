@@ -153,6 +153,7 @@ Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
             <li>Check the file is in the correct location (home directory for macOS: ~/.env, user folder for Windows: %USERPROFILE%\.env)</li>
             <li>Verify the file is named exactly .env (not .env.txt)</li>
             <li>Restart the application after creating/modifying .env</li>
+            <li><strong>Enable DevTools to see credential loading logs:</strong> Press Cmd+Shift+I (macOS) or Ctrl+Shift+I (Windows), or use Window → Toggle Developer Tools menu</li>
         </ul>
 
         <h3>Cannot connect to HC3</h3>
@@ -162,6 +163,17 @@ Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
             <li>Test by opening http://YOUR_HC3_IP in a browser</li>
             <li>Verify username and password are correct</li>
             <li>Click the connection status indicator to retry the connection</li>
+            <li><strong>Check DevTools console (Cmd/Ctrl+Shift+I) for detailed error messages</strong></li>
+        </ul>
+
+        <h3>Using Developer Tools</h3>
+        <p>For debugging issues, you can open the Developer Tools:</p>
+        <ul>
+            <li>Press <strong>Cmd+Shift+I</strong> (macOS) or <strong>Ctrl+Shift+I</strong> (Windows)</li>
+            <li>Or select <strong>Window → Toggle Developer Tools</strong> from the menu</li>
+            <li>The Console tab shows credential loading status and connection errors</li>
+            <li>Look for messages about .env file location and what credentials were loaded</li>
+            <li>Press the same shortcut again to close DevTools</li>
         </ul>
 
         <h3>Updates</h3>

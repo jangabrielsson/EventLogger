@@ -58,6 +58,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'HC3 Event Logger ${{ github.ref_name }}'
+          args: --target ${{ matrix.platform.target }}
           releaseBody: |
             ## What's Changed
             

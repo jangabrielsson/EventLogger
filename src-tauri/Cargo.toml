@@ -29,4 +29,6 @@ tauri = { version = "2.9.1", features = ["devtools"] }
 tauri-plugin-log = "2"
 tauri-plugin-http = "2"
 tauri-plugin-updater = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-process = "2"
 dotenvy = "0.15"

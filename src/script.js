@@ -1456,7 +1456,27 @@ async function checkForUpdates(silent = false) {
     }
     
     try {
-        const { check } = window.__TAURI__.updater;
+        // Verify the check function exists
+        if (!window.__TAURI__.updater.check) {
+            console.error('Updater check function not available');
+            if (!silent) {
+                const { message } = window.__TAURI__.dialog;
+                await message('Update check functionality is not available.', {
+                    title: 'Updater Error',
+                    kind: 'error'
+                });
+            }
+            return;
+        }
+        
+        const check = window.__TAURI__.updater.check;
+        
+        // Verify dialog ask function exists
+        if (!window.__TAURI__.dialog || !window.__TAURI__.dialog.ask) {
+            console.error('Dialog API not available');
+            return;
+        }
+        
         const { ask } = window.__TAURI__.dialog;
         
         // Check if process API is available for auto-relaunch

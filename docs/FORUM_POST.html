@@ -50,13 +50,15 @@
 
         <pre>HC3_HOST=192.168.1.57
 HC3_USER=admin
-HC3_PASSWORD=yourpassword</pre>
+HC3_PASSWORD=yourpassword
+HC3_PROTOCOL=http</pre>
 
         <p>Replace with your actual values:</p>
         <ul>
             <li>HC3_HOST - Your HC3 IP address (no http://)</li>
             <li>HC3_USER - Your HC3 username (usually "admin")</li>
             <li>HC3_PASSWORD - Your HC3 password</li>
+            <li>HC3_PROTOCOL - Optional, defaults to 'http'. Use 'https' if your HC3 requires it</li>
         </ul>
 
         <p><strong>Where to place the .env file:</strong></p>
@@ -73,12 +75,14 @@ HC3_PASSWORD=yourpassword</pre>
         <pre>export HC3_HOST=192.168.1.57
 export HC3_USER=admin
 export HC3_PASSWORD=yourpassword
+export HC3_PROTOCOL=http
 open /Applications/HC3\ Event\ Logger.app</pre>
 
         <p><strong>Windows (PowerShell):</strong></p>
         <pre>$env:HC3_HOST="192.168.1.57"
 $env:HC3_USER="admin"
 $env:HC3_PASSWORD="yourpassword"
+$env:HC3_PROTOCOL="http"
 Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
 
         <h2>Installation Instructions</h2>

@@ -44,7 +44,7 @@ cargo tauri dev
 ```bash
 cargo tauri build
 ```
-Creates `HC3 Event Logger.app` in `src-tauri/target/release/bundle/macos/`
+Creates `hc3-event-logger.app` in `src-tauri/target/release/bundle/macos/`
 
 ### Stop Dev Server
 Press `Ctrl+C` in the terminal

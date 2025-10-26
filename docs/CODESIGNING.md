@@ -44,7 +44,7 @@ The app is currently configured for **ad-hoc signing** in `src-tauri/tauri.conf.
 
 **User Experience:**
 ```
-"HC3 Event Logger.app can't be opened because it is from an unidentified developer"
+"hc3-event-logger.app can't be opened because it is from an unidentified developer"
 
 Solution: Right-click → Open → Click "Open" in dialog
 ```
@@ -114,16 +114,16 @@ Solution: Right-click → Open → Click "Open" in dialog
    
    # Notarize the built app
    xcrun notarytool submit \
-     "src-tauri/target/release/bundle/macos/HC3 Event Logger.app.tar.gz" \
+     "src-tauri/target/release/bundle/macos/hc3-event-logger.app.tar.gz" \
      --keychain-profile "AC_PASSWORD" \
      --wait
    
    # Staple the notarization ticket
-   xcrun stapler staple "src-tauri/target/release/bundle/macos/HC3 Event Logger.app"
+   xcrun stapler staple "src-tauri/target/release/bundle/macos/hc3-event-logger.app"
    ```
 
    # Staple the notarization ticket
-   xcrun stapler staple "src-tauri/target/release/bundle/macos/HC3 Event Logger.app"
+   xcrun stapler staple "src-tauri/target/release/bundle/macos/hc3-event-logger.app"
    ```
 
 ### 3. No Signing (Not Recommended)
@@ -158,7 +158,7 @@ Users can bypass the Gatekeeper warning using one of these methods:
 
 ### Method 2: Terminal Command
 ```bash
-xattr -cr /Applications/HC3\ Event\ Logger.app
+xattr -cr /Applications/hc3-event-logger.app
 ```
 
 ### Method 3: System Settings
@@ -262,15 +262,15 @@ security find-identity -v -p codesigning
 ### Signature verification
 ```bash
 # Check if app is signed
-codesign -vvv --deep --strict "path/to/HC3 Event Logger.app"
+codesign -vvv --deep --strict "path/to/hc3-event-logger.app"
 
 # Check notarization status
-spctl -a -vvv "path/to/HC3 Event Logger.app"
+spctl -a -vvv "path/to/hc3-event-logger.app"
 ```
 
 ### Remove existing signature
 ```bash
-codesign --remove-signature "path/to/HC3 Event Logger.app"
+codesign --remove-signature "path/to/hc3-event-logger.app"
 ```
 
 ## Resources

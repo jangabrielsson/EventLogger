@@ -71,7 +71,7 @@ jobs:
             - Open the `.dmg` file and drag the app to Applications
             - **Important:** The app is not signed with an Apple Developer certificate, so you'll need to bypass Gatekeeper:
               1. Open Terminal
-              2. Run: `xattr -cr /Applications/HC3\ Event\ Logger.app`
+              2. Run: `xattr -cr /Applications/hc3-event-logger.app`
               3. Or right-click the app, hold Option, click "Open", then confirm
             - Alternative: Go to System Settings > Privacy & Security and click "Open Anyway" after the first launch attempt
             

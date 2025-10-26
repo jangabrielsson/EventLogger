@@ -85,7 +85,9 @@ Replace with your actual HC3 IP address, username, and password.
 export HC3_HOST=192.168.1.57
 export HC3_USER=admin
 export HC3_PASSWORD=yourpassword
-open /Applications/HC3\ Event\ Logger.app
+```bash
+open /Applications/hc3-event-logger.app
+```
 ```
 
 **Windows (PowerShell):**
@@ -93,7 +95,9 @@ open /Applications/HC3\ Event\ Logger.app
 $env:HC3_HOST="192.168.1.57"
 $env:HC3_USER="admin"
 $env:HC3_PASSWORD="yourpassword"
-Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"
+```powershell
+Start-Process "C:\Program Files\hc3-event-logger\hc3-event-logger.exe"
+```
 ```
 
 **Note:** Restart the application after configuring credentials.

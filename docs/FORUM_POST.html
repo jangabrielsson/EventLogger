@@ -23,6 +23,7 @@
         <ul>
             <li>Real-time event monitoring with live updates</li>
             <li>HC3 system information viewer</li>
+            <li>Automatic update checking and installation</li>
             <li>No CORS issues - native desktop app</li>
             <li>Fast and lightweight</li>
             <li>Secure local connection to your HC3</li>
@@ -134,12 +135,22 @@ Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
             <li>Available updates</li>
         </ul>
 
+        <h3>Automatic Updates</h3>
+        <p>The app includes automatic update functionality:</p>
+        <ul>
+            <li>Click <strong>Window → Check for Updates...</strong> to manually check for new versions</li>
+            <li>When an update is available, you'll see a dialog with release notes</li>
+            <li>Click "Update" to automatically download and install the latest version</li>
+            <li>The app will restart automatically after the update is installed</li>
+            <li>All updates are cryptographically signed for security</li>
+        </ul>
+
         <h2>Troubleshooting</h2>
 
         <h3>App shows "Credentials Not Configured"</h3>
         <ul>
             <li>Make sure you created the .env file with correct credentials</li>
-            <li>Check the file is in the correct location (same directory as the app)</li>
+            <li>Check the file is in the correct location (home directory for macOS: ~/.env, user folder for Windows: %USERPROFILE%\.env)</li>
             <li>Verify the file is named exactly .env (not .env.txt)</li>
             <li>Restart the application after creating/modifying .env</li>
         </ul>
@@ -150,6 +161,14 @@ Start-Process "C:\Program Files\HC3 Event Logger\HC3 Event Logger.exe"</pre>
             <li>Check your computer is on the same network as HC3</li>
             <li>Test by opening http://YOUR_HC3_IP in a browser</li>
             <li>Verify username and password are correct</li>
+            <li>Click the connection status indicator to retry the connection</li>
+        </ul>
+
+        <h3>Updates</h3>
+        <ul>
+            <li>If automatic update check fails, you can always download the latest version manually from GitHub</li>
+            <li>Updates require an internet connection to check and download</li>
+            <li>The app will notify you when a new version is available</li>
         </ul>
 
         <h2>Security &amp; Privacy</h2>

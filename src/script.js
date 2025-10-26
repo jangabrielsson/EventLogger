@@ -1402,24 +1402,49 @@ document.addEventListener('DOMContentLoaded', () => {
 // Updater functionality
 async function setupUpdater() {
     console.log('Setting up updater...');
-    const { check } = window.__TAURI__.updater;
-    const { relaunch } = window.__TAURI__.process;
-    const { listen } = window.__TAURI__.event;
     
-    // Listen for menu-triggered update checks
-    await listen('check-for-updates', async () => {
-        console.log('check-for-updates event received');
-        await checkForUpdates();
-    });
+    // Check if Tauri updater API is available
+    if (!window.__TAURI__ || !window.__TAURI__.updater) {
+        console.warn('Tauri updater API not available');
+        return;
+    }
     
-    console.log('Updater setup complete');
-    // Optionally check for updates on startup (silent check)
-    // Uncomment if you want automatic update checks on app launch
-    // setTimeout(() => checkForUpdates(true), 3000);
+    try {
+        const { check } = window.__TAURI__.updater;
+        const { relaunch } = window.__TAURI__.process;
+        const { listen } = window.__TAURI__.event;
+        
+        // Listen for menu-triggered update checks
+        await listen('check-for-updates', async () => {
+            console.log('check-for-updates event received');
+            await checkForUpdates();
+        });
+        
+        console.log('Updater setup complete');
+        // Optionally check for updates on startup (silent check)
+        // Uncomment if you want automatic update checks on app launch
+        // setTimeout(() => checkForUpdates(true), 3000);
+    } catch (error) {
+        console.error('Error setting up updater:', error);
+    }
 }
 
 async function checkForUpdates(silent = false) {
     console.log('checkForUpdates called, silent:', silent);
+    
+    // Check if Tauri updater API is available
+    if (!window.__TAURI__ || !window.__TAURI__.updater) {
+        console.error('Tauri updater API not available');
+        if (!silent) {
+            const { message } = window.__TAURI__.dialog;
+            await message('Update functionality is not available in this build.', {
+                title: 'Updater Not Available',
+                kind: 'error'
+            });
+        }
+        return;
+    }
+    
     try {
         const { check } = window.__TAURI__.updater;
         const { relaunch } = window.__TAURI__.process;

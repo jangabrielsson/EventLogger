@@ -1522,13 +1522,23 @@ async function checkForUpdates(silent = false) {
 
 // Toggle developer tools
 async function toggleDevtools() {
+    console.log('toggleDevtools() called');
     try {
         // Use Tauri's built-in devtools toggle command
         const { invoke } = window.__TAURI__.core;
+        console.log('About to invoke internal_toggle_devtools...');
         await invoke('plugin:webview|internal_toggle_devtools');
-        console.log('DevTools toggled');
+        console.log('DevTools toggled successfully');
     } catch (error) {
         console.error('Failed to toggle devtools:', error);
+        // Show error to user
+        if (window.__TAURI__ && window.__TAURI__.dialog) {
+            const { message } = window.__TAURI__.dialog;
+            await message(`Failed to toggle devtools: ${error}`, {
+                title: 'DevTools Error',
+                kind: 'error'
+            });
+        }
     }
 }
 

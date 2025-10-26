@@ -1442,15 +1442,14 @@ async function setupUpdater() {
 async function checkForUpdates(silent = false) {
     console.log('checkForUpdates called, silent:', silent);
     
+    // Debug: Log what Tauri APIs are available
+    console.log('Available Tauri APIs:', Object.keys(window.__TAURI__ || {}));
+    
     // Check if Tauri updater API is available
     if (!window.__TAURI__ || !window.__TAURI__.updater) {
         console.error('Tauri updater API not available');
-        if (!silent && window.__TAURI__ && window.__TAURI__.dialog) {
-            const { message } = window.__TAURI__.dialog;
-            await message('Update functionality is not available in this build.', {
-                title: 'Updater Not Available',
-                kind: 'error'
-            });
+        if (!silent) {
+            alert('Update functionality is not available in this build.');
         }
         return;
     }
@@ -1460,24 +1459,18 @@ async function checkForUpdates(silent = false) {
         if (!window.__TAURI__.updater.check) {
             console.error('Updater check function not available');
             if (!silent) {
-                const { message } = window.__TAURI__.dialog;
-                await message('Update check functionality is not available.', {
-                    title: 'Updater Error',
-                    kind: 'error'
-                });
+                alert('Update check functionality is not available.');
             }
             return;
         }
         
         const check = window.__TAURI__.updater.check;
         
-        // Verify dialog ask function exists
-        if (!window.__TAURI__.dialog || !window.__TAURI__.dialog.ask) {
-            console.error('Dialog API not available');
-            return;
+        // Try to get dialog functions - use alert as fallback
+        const hasDialog = window.__TAURI__.dialog && window.__TAURI__.dialog.ask;
+        if (!hasDialog) {
+            console.warn('Dialog API not available, will use browser alert/confirm as fallback');
         }
-        
-        const { ask } = window.__TAURI__.dialog;
         
         // Check if process API is available for auto-relaunch
         const hasRelaunch = window.__TAURI__.process && window.__TAURI__.process.relaunch;
@@ -1499,12 +1492,19 @@ async function checkForUpdates(silent = false) {
             
             const message = `A new version (${version}) is available!\n\n${body}\n\nWould you like to download and install it now?`;
             
-            const shouldUpdate = await ask(message, {
-                title: 'Update Available',
-                kind: 'info',
-                okLabel: 'Update',
-                cancelLabel: 'Later'
-            });
+            // Use dialog API if available, otherwise use confirm
+            let shouldUpdate;
+            if (hasDialog) {
+                const { ask } = window.__TAURI__.dialog;
+                shouldUpdate = await ask(message, {
+                    title: 'Update Available',
+                    kind: 'info',
+                    okLabel: 'Update',
+                    cancelLabel: 'Later'
+                });
+            } else {
+                shouldUpdate = confirm(message);
+            }
             
             if (shouldUpdate) {
                 console.log('Downloading and installing update...');
@@ -1515,46 +1515,64 @@ async function checkForUpdates(silent = false) {
                 // Ask to restart if relaunch is available
                 if (hasRelaunch) {
                     const { relaunch } = window.__TAURI__.process;
-                    const shouldRelaunch = await ask(
-                        'Update installed successfully. Restart the application now?',
-                        {
-                            title: 'Update Complete',
-                            kind: 'info',
-                            okLabel: 'Restart Now',
-                            cancelLabel: 'Later'
-                        }
-                    );
+                    let shouldRelaunch;
+                    if (hasDialog) {
+                        const { ask } = window.__TAURI__.dialog;
+                        shouldRelaunch = await ask(
+                            'Update installed successfully. Restart the application now?',
+                            {
+                                title: 'Update Complete',
+                                kind: 'info',
+                                okLabel: 'Restart Now',
+                                cancelLabel: 'Later'
+                            }
+                        );
+                    } else {
+                        shouldRelaunch = confirm('Update installed successfully. Restart the application now?');
+                    }
                     
                     if (shouldRelaunch) {
                         await relaunch();
                     }
                 } else {
                     // Manual restart required
-                    const { message } = window.__TAURI__.dialog;
-                    await message('Update installed successfully. Please restart the application manually.', {
-                        title: 'Update Complete',
-                        kind: 'info'
-                    });
+                    if (hasDialog) {
+                        const { message } = window.__TAURI__.dialog;
+                        await message('Update installed successfully. Please restart the application manually.', {
+                            title: 'Update Complete',
+                            kind: 'info'
+                        });
+                    } else {
+                        alert('Update installed successfully. Please restart the application manually.');
+                    }
                 }
             }
         } else {
             if (!silent) {
                 // Only show "up to date" message if user manually checked
-                const { message } = window.__TAURI__.dialog;
-                await message('You are running the latest version!', {
-                    title: 'No Updates Available',
-                    kind: 'info'
-                });
+                if (hasDialog) {
+                    const { message } = window.__TAURI__.dialog;
+                    await message('You are running the latest version!', {
+                        title: 'No Updates Available',
+                        kind: 'info'
+                    });
+                } else {
+                    alert('You are running the latest version!');
+                }
             }
         }
     } catch (error) {
         console.error('Update check failed:', error);
         if (!silent) {
-            const { message } = window.__TAURI__.dialog;
-            await message(`Failed to check for updates: ${error}`, {
-                title: 'Update Error',
-                kind: 'error'
-            });
+            if (hasDialog) {
+                const { message } = window.__TAURI__.dialog;
+                await message(`Failed to check for updates: ${error}`, {
+                    title: 'Update Error',
+                    kind: 'error'
+                });
+            } else {
+                alert(`Failed to check for updates: ${error}`);
+            }
         }
     }
 }

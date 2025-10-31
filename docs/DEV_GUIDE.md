@@ -28,7 +28,7 @@ The command `cargo tauri dev` is currently:
 When the window opens:
 1. Enter your HC3 IP directly: `192.168.1.57` (no proxy needed!)
 2. Username: `admin`
-3. Password: `Admin1477!`
+3. Password: `xxxxxx`
 4. Click "Connect"
 
 **No more CORS errors!** Native apps can make HTTP requests directly.
